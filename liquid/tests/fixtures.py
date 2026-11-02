@@ -75,6 +75,7 @@ CASES = {
                                first_reward_display="12.50", first_reward_min_spend=50),
     "long-names":         case(recommendations=recs(LONG_NAMES), **REWARD),
     "zero-amount":        case(first_reward_amount=0, first_reward_display="0", first_reward_min_spend=50),
+    "200-no-restaurants": case(recommendations={"__http_status_code__": 200}, **REWARD),
 }
 
 ABORTS = {

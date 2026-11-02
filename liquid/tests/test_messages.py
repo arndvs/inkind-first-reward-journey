@@ -67,6 +67,12 @@ def test_generic_when_recommendations_fail():
     assert push("generic") == "Your $25 toward a $50+ meal is waiting. Find a spot near you tonight."
 
 
+def test_200_without_restaurants_falls_back_like_a_failed_call():
+    out = email("200-no-restaurants")
+    assert "Find a spot near you" in out and "Near you" not in out
+    assert push("200-no-restaurants") == "Your $25 toward a $50+ meal is waiting. Find a spot near you tonight."
+
+
 @pytest.mark.parametrize("case,reason", ABORTS.items())
 def test_unusable_reward_aborts_both_channels(case, reason):
     for template in (EMAIL, PUSH):

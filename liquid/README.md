@@ -96,7 +96,7 @@ pip install -r liquid/requirements.txt
 python -m pytest liquid/tests -v
 ```
 
-[`tests/harness.py`](tests/harness.py) stands in for Braze: it inlines Content Blocks by name and replaces Braze-only syntax (`catalog_items`, `connected_content`, `abort_message`, `custom_attribute`, `context`, the unsubscribe and preference center tags) with fixture data. [`tests/fixtures.py`](tests/fixtures.py) holds ten cases: the seven Liquid previews from [`04`](../04-qa-and-measurement.md), plus a $12.50 reward, three long restaurant names, and a zero amount. The restaurants are fictional, with `demo-` location IDs so a link can't open a real listing, and their photos are AI-generated sample images in `images/samples/`, each labeled "Sample image": a full-width JPEG for cards and a square one for row thumbnails. A test fails if any email loads an image from outside `images/`.
+[`tests/harness.py`](tests/harness.py) stands in for Braze: it inlines Content Blocks by name and replaces Braze-only syntax (`catalog_items`, `connected_content`, `abort_message`, `custom_attribute`, `context`, the unsubscribe and preference center tags) with fixture data. [`tests/fixtures.py`](tests/fixtures.py) holds eleven cases: the seven Liquid previews from [`04`](../04-qa-and-measurement.md), plus a $12.50 reward, three long restaurant names, a zero amount, and a 200 response with no restaurants. The restaurants are fictional, with `demo-` location IDs so a link can't open a real listing, and their photos are AI-generated sample images in `images/samples/`, each labeled "Sample image": a full-width JPEG for cards and a square one for row thumbnails. A test fails if any email loads an image from outside `images/`.
 
 | File | Checks |
 |---|---|
