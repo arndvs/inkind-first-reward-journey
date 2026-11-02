@@ -8,6 +8,10 @@ How I'd build one Braze journey end to end: get browse intent and the referral r
 
 I wasn't expecting a message that particular night. But a message or two in the weeks before about my reward and the places I'd saved would have made inKind more likely to come to mind while we searched, and a message saying my $25 was waiting at a restaurant I'd saved is one I would have used. Everything that message needed was already in my account: the restaurants I saved and the reward I hadn't used. This repo is how I'd get those signals onto the Braze profile and act on them. It's the same idea behind the recency and frequency segments I've built before: message people based on what they've done and what they haven't.
 
+The SQL running in Snowflake (4:42):
+
+[![Watch the SQL run in Snowflake (4:42)](sql/video-thumbnail.png)](https://youtu.be/OnmBVC8vrwE)
+
 ---
 
 ## What's built here
