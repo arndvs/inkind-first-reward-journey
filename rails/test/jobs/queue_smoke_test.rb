@@ -1,22 +1,13 @@
 require "test_helper"
 
-class QueueSmokeTest < ActiveJob::TestCase
-  class PingJob < ApplicationJob
-    queue_as :default
-
-    class_attribute :ran, default: false
-
-    def perform(value)
-      self.class.ran = value
-    end
-  end
-
-  test "an enqueued job runs when performed" do
-    assert_enqueued_jobs 1, only: PingJob do
+class PingJobTest < ActiveJob::TestCase
+  test "enqueues on the default queue and performs" do
+    assert_enqueued_with(job: PingJob, args: [ "pong" ], queue: "default") do
       PingJob.perform_later("pong")
     end
 
-    perform_enqueued_jobs only: PingJob
-    assert_equal "pong", PingJob.ran
+    assert_nothing_raised do
+      perform_enqueued_jobs
+    end
   end
 end
