@@ -1,0 +1,12 @@
+CHECK_NAME,EXPECTED,ACTUAL,RESULT
+One Braze row per referred user,9,9,PASS
+UPDATED_AT is never NULL,0,0,PASS
+"A used reward is sent as JSON null, so Braze clears it (u_1002)",true,true,PASS
+Plain OBJECT_CONSTRUCT would drop that key instead (keys left),0,0,PASS
+Whole-dollar display (u_1001),25,25,PASS
+Two-decimal display (u_1003),12.50,12.50,PASS
+Minimum spend sent as a whole number (u_1001),50,50,PASS
+First meal under $50 keeps the reward (u_1004),25,25,PASS
+Main Canvas audience,"u_1001,u_1003,u_1006,u_1007,u_1008,u_1010","u_1001,u_1003,u_1006,u_1007,u_1008,u_1010",PASS
+Rewards with a missing minimum (the template aborts these),u_1008,u_1008,PASS
+Rows a sync on Oct 20 would miss because data arrived late,u_1009,u_1009,PASS
