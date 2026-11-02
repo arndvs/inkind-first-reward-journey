@@ -1,10 +1,8 @@
 # Fictional data only. Mirrors sql/00_sample_data.sql so the Rails demo and the Snowflake
 # proof of concept describe the same ten users. Idempotent: safe to run repeatedly.
 #
-# Gaps between sql/00 and §5.1, kept visible here rather than hidden:
-#   - sql/00 transactions have no restaurant; all four use r_101 (Lantern Row) as a placeholder
-#   - u_1010 saved r_208 and r_219, which are not among the four §5.1 restaurants, so those saves are omitted
-#   - session_start events are omitted; §5.1 lists only restaurant_saved events
+# sql/00 has no session_start events: sessions are collected by the Braze SDK, not this app.
+# Transactions have no restaurant, as in sql/00. App payments must name one (see Txn).
 
 exported_at = Time.current
 asset_base = ENV.fetch(
@@ -23,14 +21,20 @@ restaurants = [
   { key: "r_214", name: "Ember & Oak", location_id: "demo-202", cuisine: "Steakhouse, wood-fired grill",
     price: "$$$$", cashback_pct: 20, image: "ember-and-oak" },
   { key: "r_233", name: "Tidepool Taqueria", location_id: "demo-203", cuisine: "Mexican, tacos",
-    price: "$$", cashback_pct: 10, image: "tidepool" }
+    price: "$$", cashback_pct: 10, image: "tidepool" },
+  { key: "r_208", name: "Harbor Noodle House", location_id: "demo-208", cuisine: "Noodles",
+    price: "$$", cashback_pct: 10, image: nil },
+  { key: "r_219", name: "Saffron & Salt", location_id: "demo-219", cuisine: "Indian",
+    price: "$$", cashback_pct: 15, image: nil }
 ]
 
 restaurants.each do |attrs|
   Restaurant.find_or_create_by!(key: attrs[:key]) do |restaurant|
     restaurant.assign_attributes(attrs.except(:key, :image))
-    restaurant.image_url = "#{asset_base}#{attrs[:image]}.jpg"
-    restaurant.thumb_url = "#{asset_base}#{attrs[:image]}-thumb.jpg"
+    if attrs[:image]
+      restaurant.image_url = "#{asset_base}#{attrs[:image]}.jpg"
+      restaurant.thumb_url = "#{asset_base}#{attrs[:image]}-thumb.jpg"
+    end
   end
 end
 
@@ -79,7 +83,6 @@ rewards.each do |row|
   end
 end
 
-lantern_row = Restaurant.find_by!(key: "r_101")
 transactions = [
   { key: "tx_01", user: "u_1002", subtotal: 6420, applied: true,  at: "2026-10-03 19:41:00" },
   { key: "tx_02", user: "u_1002", subtotal: 4100, applied: false, at: "2026-10-17 20:12:00" },
@@ -90,7 +93,6 @@ transactions = [
 transactions.each do |row|
   Txn.find_or_create_by!(transaction_key: row[:key]) do |txn|
     txn.user = User.find_by!(external_id: row[:user])
-    txn.restaurant = lantern_row
     txn.subtotal_cents = row[:subtotal]
     txn.reward_applied = row[:applied]
     txn.exported_at = exported_at
@@ -105,7 +107,9 @@ rw_02.update!(redeemed_at: at.("2026-10-03 19:41:00")) if rw_02.redeemed_at.nil?
 saves = [
   { user: "u_1001", restaurant: "r_201", at: "2026-10-11 21:09:00" },
   { user: "u_1001", restaurant: "r_214", at: "2026-10-11 21:12:00" },
-  { user: "u_1003", restaurant: "r_233", at: "2026-10-16 12:34:00" }
+  { user: "u_1003", restaurant: "r_233", at: "2026-10-16 12:34:00" },
+  { user: "u_1010", restaurant: "r_208", at: "2026-10-09 11:41:00" },
+  { user: "u_1010", restaurant: "r_219", at: "2026-10-13 20:02:00" }
 ]
 
 saves.each do |row|

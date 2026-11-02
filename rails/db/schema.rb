@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_220008) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_220009) do
   create_table "app_events", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "event_name", null: false
@@ -87,7 +87,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_220008) do
   create_table "transactions", force: :cascade do |t|
     t.string "transaction_key", null: false
     t.integer "user_id", null: false
-    t.integer "restaurant_id", null: false
+    t.integer "restaurant_id"
     t.integer "subtotal_cents", null: false
     t.integer "tip_cents", default: 0, null: false
     t.boolean "reward_applied", default: false, null: false

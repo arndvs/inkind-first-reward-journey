@@ -124,7 +124,7 @@ All times are stored in UTC. Money is integer cents; it's converted to `NUMBER(1
 | `restaurants` | `key:string`, `name`, `location_id`, `cuisine`, `price`, `rating:decimal`, `cashback_pct:integer`, `image_url`, `thumb_url`, `description:text`, timestamps | unique `key` |
 | `rewards` | `reward_key:string`, `user:references`, `reward_type:string`, `amount_cents:integer`, `min_spend_cents:integer` (nullable), `redeemed_at:datetime`, `exported_at:datetime`, timestamps | unique `reward_key`. One `referral_welcome` per user |
 | `saved_restaurants` | `user:references`, `restaurant:references`, timestamps | unique `[user_id, restaurant_id]` |
-| `transactions` (`Txn`) | `transaction_key:string`, `user:references`, `restaurant:references`, `subtotal_cents:integer`, `tip_cents:integer` (default 0), `reward_applied:boolean`, `exported_at:datetime`, timestamps | unique `transaction_key` |
+| `transactions` (`Txn`) | `transaction_key:string`, `user:references`, `restaurant:references` (nullable: imported history has none; app payments require one), `subtotal_cents:integer`, `tip_cents:integer` (default 0), `reward_applied:boolean`, `exported_at:datetime`, timestamps | unique `transaction_key` |
 | `app_events` | `user:references`, `event_name:string`, `restaurant:references` (nullable), `occurred_at:datetime`, `exported_at:datetime` | index `[exported_at]` |
 | `braze_deliveries` | `idempotency_key:string`, `user:references`, `endpoint:string`, `payload:json`, `status:string` (`pending`, `recorded`, `failed`), `attempts:integer` (default 0), `last_error:text`, `recorded_at:datetime`, timestamps | **unique `idempotency_key`** |
 | `cdi_watermarks` | `view_name:string`, `synced_through:datetime` | unique `view_name` |
@@ -136,13 +136,14 @@ All times are stored in UTC. Money is integer cents; it's converted to `NUMBER(1
   - the reward has a `min_spend_cents` (u_1008's missing minimum is a data problem, so refuse it)
   - `subtotal_cents >= min_spend_cents` (u_1004's $38 meal)
   - Errors go on `:base` with readable messages (the course's pattern)
+- `Txn` with `on: :app_payment`: the restaurant is required. `Payments::Record` (B6) saves with that context. Imported history (§5.1) saves without it
 - `SavedRestaurant`: uniqueness of the pair
 
 ### 5.1 Seeds
 
-`db/seeds.rb` mirrors `sql/00_sample_data.sql` exactly: the same ten users, rewards (`rw_01`…), transactions (`tx_01`…), and `restaurant_saved` events. Everything seeded is marked `exported_at: Time.current`, so the exporter only ever sends new activity. Seeds must be idempotent (`find_or_create_by!`).
+`db/seeds.rb` mirrors `sql/00_sample_data.sql` exactly: the same ten users, rewards (`rw_01`…), transactions (`tx_01`…), and `restaurant_saved` events. Everything seeded is marked `exported_at: Time.current`, so the exporter only ever sends new activity. Seeds must be idempotent (`find_or_create_by!`). sql/00 has no `session_start` events: sessions are collected by the Braze SDK, not this app, so the seeds omit them. Transactions have no restaurant, as in sql/00. Once the callbacks land (B6), saves and app events will be written with `insert_all`, which skips callbacks, so seeding enqueues no jobs (tested).
 
-Restaurants: the SQL saves reference `r_201`, `r_214` and `r_233`, and the Liquid fixtures use `r_101`. Seed four restaurants so both resolve, copying the fields from `liquid/tests/fixtures.py`:
+Restaurants: the SQL saves reference `r_201`, `r_214`, `r_233`, `r_208` and `r_219`, and the Liquid fixtures use `r_101`. Seed six restaurants so all of them resolve, copying the fields from `liquid/tests/fixtures.py` where they exist:
 
 | key | name | location_id | image (repo-relative) |
 |---|---|---|---|
@@ -150,8 +151,10 @@ Restaurants: the SQL saves reference `r_201`, `r_214` and `r_233`, and the Liqui
 | `r_201` | Nonna Pia's Kitchen | demo-201 | `nonna-pias.jpg` |
 | `r_214` | Ember & Oak | demo-202 | `ember-and-oak.jpg` |
 | `r_233` | Tidepool Taqueria | demo-203 | `tidepool.jpg` |
+| `r_208` | Harbor Noodle House | demo-208 | none |
+| `r_219` | Saffron & Salt | demo-219 | none |
 
-`image_url` and `thumb_url` are built from `ASSET_BASE_URL` (default `https://raw.githubusercontent.com/arndvs/inkind-first-reward-journey/main/liquid/images/samples/`). These are the repo's own AI-generated sample images. Never link anyone else's images. Emails use `user+<external_id>@example.com`.
+`image_url` and `thumb_url` are built from `ASSET_BASE_URL` (default `https://raw.githubusercontent.com/arndvs/inkind-first-reward-journey/main/liquid/images/samples/`). These are the repo's own AI-generated sample images. Never link anyone else's images. `r_208` and `r_219` have no photo, so their `image_url` and `thumb_url` stay nil; the cards already handle that. Emails use `user+<external_id>@example.com`.
 
 ---
 
@@ -161,6 +164,7 @@ Restaurants: the SQL saves reference `r_201`, `r_214` and `r_233`, and the Liqui
 
 - `dollars(cents)` → `BigDecimal` with 2 places, for Braze `price` and the warehouse
 - `display(cents)` → `"25"` for whole dollars, `"12.50"` otherwise. It must match `first_reward_display` in `01` §4 and the Liquid fixtures
+- Braze payloads convert these values with `.to_f`. `BigDecimal` serializes to a JSON string by default, and Braze expects `price` as a number
 
 ### 6.2 `Braze::Payloads`
 
@@ -183,6 +187,7 @@ Braze::Payloads.purchase(txn)
 
 - `saved_restaurants` is the user's restaurant keys ordered by `saved_restaurants.created_at`
 - `reward_amount` is present only when `reward_applied` is true
+- `restaurant_id` is present only when the payment has a restaurant. Imported history has none
 - `price` equals `subtotal` (food and beverage, the amount the reward rule uses). The tip is a separate property
 - Payloads never contain email, name, or other personal fields
 
@@ -388,7 +393,7 @@ All HTTP goes through WebMock. CI never needs Snowflake or Braze credentials.
 
 One commit per task, on `feature/rails-backend`. Each must leave `bin/rails test` green.
 
-**Status:** task 11 is done and merged to `main` (its own branch). Task 1 is done on `feature/rails-backend`: the app skeleton plus `PingJob`, verified finished in Mission Control. Next is task 2.
+**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–3 are done on `feature/rails-backend`: the app skeleton plus `PingJob` (verified finished in Mission Control), the models and validations, and the seeds. Next is task 4, which also takes `MoneyFormat` from task 3.
 
 | # | Task | Done when |
 |---|---|---|

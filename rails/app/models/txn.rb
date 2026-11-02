@@ -3,8 +3,10 @@ class Txn < ApplicationRecord
   self.table_name = "transactions"
 
   belongs_to :user
-  belongs_to :restaurant
+  # Optional so imported history (sql/00) can omit it. Payments made in the app must name one.
+  belongs_to :restaurant, optional: true
 
+  validates :restaurant, presence: true, on: :app_payment
   validates :transaction_key, presence: true, uniqueness: true
   validates :subtotal_cents, numericality: { only_integer: true, greater_than: 0 }
   validates :tip_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }

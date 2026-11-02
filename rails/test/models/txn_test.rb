@@ -7,11 +7,11 @@ class TxnTest < ActiveSupport::TestCase
     @reward = create_reward(@user, key: "rw_01", min_spend_cents: 5000)
   end
 
-  def build_txn(user: @user, subtotal_cents: 6240, reward_applied: true, key: "tx_test")
+  def build_txn(user: @user, subtotal_cents: 6240, reward_applied: true, key: "tx_test", restaurant: @restaurant)
     Txn.new(
       transaction_key: key,
       user: user,
-      restaurant: @restaurant,
+      restaurant: restaurant,
       subtotal_cents: subtotal_cents,
       tip_cents: 0,
       reward_applied: reward_applied
@@ -57,5 +57,20 @@ class TxnTest < ActiveSupport::TestCase
 
   test "a payment must have a positive subtotal" do
     assert_not build_txn(subtotal_cents: 0, reward_applied: false).valid?
+  end
+
+  test "imported history can omit the restaurant" do
+    assert build_txn(restaurant: nil, reward_applied: false).valid?
+  end
+
+  test "an app payment must name a restaurant" do
+    txn = build_txn(restaurant: nil, reward_applied: false)
+
+    assert_not txn.valid?(:app_payment)
+    assert_predicate txn.errors[:restaurant], :any?
+  end
+
+  test "an app payment with a restaurant is valid" do
+    assert build_txn(reward_applied: false).valid?(:app_payment)
   end
 end
