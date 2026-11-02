@@ -121,6 +121,15 @@ class ConsoleTest < ActionDispatch::IntegrationTest
     assert_equal 0, Txn.count
   end
 
+  test "NaN is refused with the form error, not a server error" do
+    post user_payments_path(@user),
+         params: { payment: { restaurant_id: @lantern.id, subtotal: "NaN", tip: "0", use_reward: "0" } }
+
+    assert_response :unprocessable_content
+    assert_includes response.body, "Enter amounts like 62.40"
+    assert_equal 0, Txn.count
+  end
+
   test "the deliveries page lists each delivery" do
     post user_payments_path(@user),
          params: { payment: { restaurant_id: @lantern.id, subtotal: "62.40", tip: "0", use_reward: "0" } }
