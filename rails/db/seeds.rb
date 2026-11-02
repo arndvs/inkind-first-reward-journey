@@ -136,7 +136,11 @@ saves.each do |row|
 
   event_rows << {
     user_id: user.id, event_name: "restaurant_saved", restaurant_id: restaurant.id,
-    occurred_at: saved_at, exported_at: exported_at
+    occurred_at: saved_at, exported_at: exported_at,
+    event_key: AppEvent.event_key_for(
+      event_name: "restaurant_saved", user_external_id: user.external_id,
+      restaurant_key: restaurant.key, occurred_at: saved_at
+    )
   }
 end
 SavedRestaurant.insert_all(save_rows, unique_by: %i[ user_id restaurant_id ])

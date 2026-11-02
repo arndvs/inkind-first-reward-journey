@@ -5,6 +5,11 @@
 CREATE OR REPLACE SCHEMA INKIND_POC.RAILS_DEMO CLONE INKIND_POC.FIRST_REWARD;
 USE SCHEMA INKIND_POC.RAILS_DEMO;
 
+-- The Rails export MERGEs app events on event_key so a re-sent export can't duplicate a row.
+-- FIRST_REWARD has no such column, so only this clone gets it. Rows cloned from FIRST_REWARD keep a NULL key;
+-- Rails never re-sends them, because they are not Rails rows.
+ALTER TABLE app_events ADD COLUMN IF NOT EXISTS event_key STRING;
+
 -- The Cloud Data Ingestion view, the same definition as sql/01_braze_view.sql, in this schema.
 CREATE OR REPLACE VIEW braze_first_reward_attributes AS
 SELECT

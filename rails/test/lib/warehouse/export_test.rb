@@ -32,7 +32,7 @@ class WarehouseExportTest < ActiveSupport::TestCase
 
     export
 
-    assert_requested :post, SnowflakeHelpers::STATEMENTS_URL, body: /INSERT INTO transactions/, times: 1
+    assert_requested :post, SnowflakeHelpers::STATEMENTS_URL, body: /MERGE INTO transactions/, times: 1
     assert_requested :post, SnowflakeHelpers::STATEMENTS_URL,
                      body: /"value":"tx_export"/, times: 1
     assert_not_nil txn.reload.exported_at
@@ -44,7 +44,7 @@ class WarehouseExportTest < ActiveSupport::TestCase
 
     export
 
-    assert_requested :post, SnowflakeHelpers::STATEMENTS_URL, body: /INSERT INTO transactions/, times: 2
+    assert_requested :post, SnowflakeHelpers::STATEMENTS_URL, body: /MERGE INTO transactions/, times: 2
   end
 
   test "a reward is merged by key with its amount and minimum as text" do
@@ -91,10 +91,10 @@ class WarehouseExportTest < ActiveSupport::TestCase
     export
 
     assert_requested :post, SnowflakeHelpers::STATEMENTS_URL,
-                     body: /INSERT INTO transactions.*CONVERT_TIMEZONE\('UTC'/, times: 1
+                     body: /MERGE INTO transactions.*CONVERT_TIMEZONE\('UTC'/, times: 1
   end
 
   test "each insert has one placeholder per bound value" do
-    assert_equal 2 * 5, Warehouse::Statements.transactions_insert(2).count("?")
+    assert_equal 2 * Warehouse::Statements::TRANSACTION_BINDS, Warehouse::Statements.transactions_merge(2).count("?")
   end
 end

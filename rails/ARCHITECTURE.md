@@ -292,8 +292,8 @@ The clone keeps `FIRST_REWARD` untouched, so `sql/03_checks.sql` still passes th
 `Warehouse::ExportJob` (recurring every 10 minutes in development; a console button enqueues it on demand):
 
 1. Exit without calling Snowflake when nothing has `exported_at: nil`. That keeps the warehouse asleep
-2. `transactions`: one multi-row `INSERT … VALUES (?, ?, ?::NUMBER(10,2), ?::BOOLEAN, ?::TIMESTAMP_NTZ, CURRENT_TIMESTAMP()), …`, at most 100 rows per statement. `amount` is the subtotal
-3. `app_events`: `INSERT … (user_id, event_name, restaurant_id, event_at)` the same way
+2. `transactions`: one multi-row `MERGE INTO transactions … ON t.transaction_id = s.transaction_id WHEN NOT MATCHED THEN INSERT …`, at most 100 rows per statement. `amount` is the subtotal. A row whose `transaction_id` is already in the warehouse is not inserted again
+3. `app_events`: the same shape, `MERGE INTO app_events … ON t.event_key = s.event_key`. `event_key` is `event_name:user_external_id:restaurant_key:occurred_at_utc`, built once when the event is created (`AppEvent.event_key_for`), so the same event always has the same key. `sql/10` adds the `event_key` column to `RAILS_DEMO` only; `FIRST_REWARD` is unchanged. Rows cloned from `FIRST_REWARD` keep a NULL key, and Rails never re-sends them
 4. `rewards` (new or redeemed since the last export):
 
 ```sql

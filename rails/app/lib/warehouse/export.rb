@@ -53,7 +53,7 @@ module Warehouse
             timestamp(txn.created_at)
           ]
         end
-        @client.query(Statements.transactions_insert(batch.size), binds)
+        @client.query(Statements.transactions_merge(batch.size), binds)
         Txn.where(id: batch.map(&:id)).update_all(exported_at: @now)
       end
       rows.size
@@ -63,9 +63,9 @@ module Warehouse
       rows = AppEvent.where(exported_at: nil).includes(:user, :restaurant).order(:occurred_at, :id).to_a
       rows.each_slice(BATCH_SIZE) do |batch|
         binds = batch.flat_map do |event|
-          [ event.user.external_id, event.event_name, event.restaurant&.key, timestamp(event.occurred_at) ]
+          [ event.event_key, event.user.external_id, event.event_name, event.restaurant&.key, timestamp(event.occurred_at) ]
         end
-        @client.query(Statements.app_events_insert(batch.size), binds)
+        @client.query(Statements.app_events_merge(batch.size), binds)
         AppEvent.where(id: batch.map(&:id)).update_all(exported_at: @now)
       end
       rows.size
