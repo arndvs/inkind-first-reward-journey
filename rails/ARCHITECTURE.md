@@ -309,7 +309,9 @@ WHEN NOT MATCHED THEN INSERT (reward_id, user_id, reward_type, amount, min_spend
 ```
 
 5. Set `exported_at` on each Rails row **only after** its statement succeeds
-6. `updated_at` and `loaded_at` are the load time (`CURRENT_TIMESTAMP()`), so a late row still moves the view's `UPDATED_AT`
+6. `updated_at` and `loaded_at` are the load time in UTC, so a late row still moves the view's `UPDATED_AT`. The SQL uses `CONVERT_TIMEZONE('UTC', CURRENT_TIMESTAMP())::TIMESTAMP_NTZ` rather than a bare `CURRENT_TIMESTAMP()`, which follows the session time zone and would store local time. This departs from the earlier draft and is verified in `RAILS_DEMO`
+7. A reward is pending when it is new, or when `redeemed_at` is later than its `exported_at`. Each reward goes in its own `MERGE`, so a failed one stays pending on its own
+8. The schedule runs `Warehouse::ExportJob` every 10 minutes in development (`config/recurring.yml`). A failed run leaves its rows pending for the next run
 
 ### 6.9 `Warehouse::CdiPreview`
 

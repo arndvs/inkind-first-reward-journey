@@ -14,4 +14,7 @@ Rails.application.routes.draw do
     resources :payments, only: :create
   end
   resources :deliveries, only: :index
+
+  get "warehouse", to: "warehouse#show", as: :warehouse
+  post "warehouse/export", to: "warehouse#export", as: :warehouse_export
 end

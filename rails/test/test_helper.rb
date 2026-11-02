@@ -3,6 +3,7 @@ require_relative "../config/environment"
 require "rails/test_help"
 require "webmock/minitest"
 require_relative "support/sample_records"
+require_relative "support/snowflake_helpers"
 
 module ActiveSupport
   class TestCase
@@ -13,6 +14,7 @@ module ActiveSupport
     fixtures :all
 
     include SampleRecords
+    include SnowflakeHelpers
 
     # Add more helper methods to be used by all tests here...
   end
