@@ -46,6 +46,42 @@ def build_email_body(out):
     (out / "email_body.liquid").write_text(rewrite_assets(source.read_text(encoding="utf-8")) + "\n", encoding="utf-8")
 
 
+# A Braze trial workspace allows eight Content Blocks. The first eight (config, logic and layout) stay as
+# includes; the visible blocks after them are written inline, so the trial email uses only those eight.
+TRIAL_INCLUDE_LIMIT = 8
+INCLUDE_PATTERN = r"\{\{content_blocks\.\$\{(\w+)\}\}\}"
+
+
+def build_trial_body(out):
+    """Writes email_body_trial.liquid: the email with blocks past the trial limit inlined."""
+    import re
+
+    source = (MESSAGES_DIR / "first_reward.email.liquid").read_text(encoding="utf-8")
+    files = {p.stem: p for p in BLOCKS_DIR.glob("*/*.liquid")}
+    ordered = sorted(files, key=lambda name: (LAYER_ORDER.index(files[name].parent.name), files[name].name))
+    keep = set(ordered[:TRIAL_INCLUDE_LIMIT])
+
+    def block_body(name):
+        # Everything after the header comment, exactly as written. Braze strips the comment itself.
+        return files[name].read_text(encoding="utf-8").split("{%- endcomment -%}", 1)[1]
+
+    # Inlining a block can bring in its own includes, so inline those too, unless they are among the eight.
+    def inline(text, depth=0):
+        if depth > 10:
+            raise RuntimeError("Content Blocks nested more than 10 deep")
+
+        def replace(match):
+            name = match.group(1)
+            if name in keep:
+                return match.group(0)
+            return inline(block_body(name), depth + 1)
+
+        return re.sub(INCLUDE_PATTERN, replace, text)
+
+    text = inline(source)
+    (out / "email_body_trial.liquid").write_text(rewrite_assets(text) + "\n", encoding="utf-8")
+
+
 CATALOG_FIELDS = ["name", "location_id", "cuisine", "price", "rating", "cashback_pct",
                   "image_url", "thumb_url", "description"]
 
@@ -165,6 +201,7 @@ def main():
     OUT.mkdir(parents=True)
     count = build_blocks(OUT)
     build_email_body(OUT)
+    build_trial_body(OUT)
     build_catalog(OUT)
     build_users(OUT)
     build_guides(OUT)
