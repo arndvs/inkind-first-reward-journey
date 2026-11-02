@@ -54,7 +54,7 @@ Liquid variables are global, so a block's inputs are variables set just before i
 |---|---|---|
 | `ik_get_reward` | `first_reward_amount`, `first_reward_display`, `first_reward_min_spend` | `reward`, `reward_display`, `min_spend`, `offer`, `reward_ok`, `reward_skip_reason` |
 | `ik_get_saved_restaurant` | `context.${restaurant_id}`, `saved_restaurants`, `restaurants` Catalog | `saved`, `saved_name` |
-| `ik_get_nearby` | user ID, recommendations endpoint (placeholder) | `nearby`, or nothing if the call fails |
+| `ik_get_nearby` | user ID, recommendations endpoint (placeholder) | `nearby`, or nothing if the call fails. **Trial workspace:** loaded as a stub that makes no call; Connected Content is blocked there, even inside a Liquid comment (see [Braze trial results](#braze-trial-results)) |
 | `ik_restaurant_link` | `card` | `card_link` |
 | `ik_layout_open` | `page_title`, `preheader` | |
 | `ik_button` | `btn_label`, `btn_url`, optional `btn_style` (`primary` or `dark`) | |
@@ -107,6 +107,34 @@ python -m pytest liquid/tests -v
 They run on every push that touches this folder or `03` ([`.github/workflows/liquid-tests.yml`](../.github/workflows/liquid-tests.yml)).
 
 To rebuild the previews, run `python liquid/tests/build_previews.py`. Add `--screenshots` for PNGs at 680px and 375px wide, which needs `pip install playwright && playwright install chromium`.
+
+## Braze trial results
+
+Observed in a Braze trial workspace, with the Live workspace not used for sends. These are things seen in the Braze UI, not Braze documentation.
+
+**Renders**
+
+- The $25 user (u_1001) gets the full email, with the subject "Your $25 toward a $50+ meal is waiting" and the Explore button.
+- The $12.50 user (u_1003) shows "$12.50" after `first_reward_display` is set to String in the import mapping. Braze guessed Number by default.
+- The zero-amount, missing-minimum and no-reward cases each stop with their own `abort_message`.
+- The saved-restaurant card renders from the `restaurants` Catalog. This was tested with a temporary Catalog lookup pinned to `r_101`.
+
+**Trial limits, and the workaround for each**
+
+| Limit | Observed | Workaround here |
+|---|---|---|
+| Connected Content | Blocked, even inside a Liquid comment | `ik_get_nearby` was loaded as a stub that makes no call. The Explore fallback is what shows |
+| Content Blocks | 8 maximum | The visible blocks were written inline in a trial email body. [`email_body_trial.liquid`](../liquid/build/braze-bundle/email_body_trial.liquid) keeps includes for blocks 01–08 and writes 09–17 inline |
+| CSV import | Can't set arrays | `saved_restaurants` is left out of `users_import.csv`. The saved card is tested with a custom user in Preview |
+| REST API | Not available | Nothing is sent. The Braze payloads are built and stored in Rails instead |
+
+**Other findings**
+
+- A Content Block that references a custom attribute can't be saved until the attribute exists.
+- The preference center tag fails unless the named preference center exists.
+- The Catalog CSV imported every column as String.
+
+**Trial body and the full body.** The trial body renders the same markup as the full body for every fixture case, and a test checks it. The two are not byte-identical: the trial body has different line breaks, about four to five characters longer per case. The test compares markup with whitespace between tags ignored, and says so.
 
 ## How I'd deploy it
 
