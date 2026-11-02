@@ -110,6 +110,8 @@ To rebuild the previews, run `python liquid/tests/build_previews.py`. Add `--scr
 
 ## Braze trial results
 
+[![Watch the Liquid render in a Braze trial](../docs/images/braze-video-thumbnail.png)](https://youtu.be/fSDLiHyoBgs)
+
 Observed in a Braze trial workspace, with the Live workspace not used for sends. These are things seen in the Braze UI, not Braze documentation.
 
 **Observed in the trial workspace**
