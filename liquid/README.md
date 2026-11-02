@@ -17,9 +17,11 @@ Each file in `blocks/` is one Content Block, named after the file. A message inc
 | config | `ik_brand`, `ik_urls` | Design tokens (color, type, spacing, widths), logo and icon paths, legal footer, base and social URLs |
 | logic | `ik_get_reward`, `ik_get_saved_restaurant`, `ik_get_nearby`, `ik_restaurant_link` | Read data and decide. Print nothing. Shared by push and email |
 | layout | `ik_layout_open`, `ik_layout_close` | Document shell, preheader, mobile CSS |
-| elements | `ik_button`, `ik_badge_cashback` | Smallest visible pieces. The button carries Outlook's VML version |
+| elements | `ik_button` | Smallest visible pieces. The button carries Outlook's VML version |
 | components | `ik_card_restaurant_feature`, `ik_card_restaurant_compact`, `ik_card_restaurant_row`, `ik_callout`, `ik_how_to_use_reward` | Cards and notes built from elements |
 | sections | `ik_hero_text`, `ik_section_restaurant_list`, `ik_footer` | Full-width bands a message stacks |
+
+Braze renders a Content Block nested inside another only one level deep, and drops anything deeper. So a message may include blocks, and those blocks may include blocks, but no further. The cards include no blocks: the restaurant link and the cash-back chip are written inline. `ik_restaurant_link` stays a message-level block for the email's hero button. [`tests/test_nesting.py`](tests/test_nesting.py) checks every message.
 
 Logic blocks never print, and visible blocks never look anything up. That's what lets [`messages/first_reward.push.liquid`](messages/first_reward.push.liquid) reuse the email's logic unchanged.
 
@@ -56,7 +58,6 @@ Liquid variables are global, so a block's inputs are variables set just before i
 | `ik_restaurant_link` | `card` | `card_link` |
 | `ik_layout_open` | `page_title`, `preheader` | |
 | `ik_button` | `btn_label`, `btn_url`, optional `btn_style` (`primary` or `dark`) | |
-| `ik_badge_cashback` | `card`, optional `badge_bg` | |
 | `ik_card_restaurant_feature`, `ik_card_restaurant_compact`, `ik_card_restaurant_row` | `card` | |
 | `ik_callout` | `callout_text`, optional `callout_style` (`note` or `dark`) | |
 | `ik_how_to_use_reward` | `min_spend` | |

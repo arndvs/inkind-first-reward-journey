@@ -52,9 +52,12 @@ def test_card_without_image_has_no_img_tag():
     assert "<img" not in out and "Lantern Row" in out
 
 
-def test_badge_hidden_without_cashback():
-    out = render(CONFIG + "{{content_blocks.${ik_badge_cashback}}}", {"card": {"name": "X"}})
-    assert out.strip() == ""
+@pytest.mark.parametrize("name", ["ik_card_restaurant_feature", "ik_card_restaurant_compact", "ik_card_restaurant_row"])
+def test_cash_back_chip_only_when_a_rate_is_set(name):
+    include = "{{content_blocks.$" + "{" + name + "}}}"
+    with_rate = render(CONFIG + include, {"card": FEATURED})
+    without_rate = render(CONFIG + include, {"card": {**FEATURED, "cashback_pct": None}})
+    assert "% back" in with_rate and "% back" not in without_rate
 
 
 def test_link_falls_back_to_explore_url():

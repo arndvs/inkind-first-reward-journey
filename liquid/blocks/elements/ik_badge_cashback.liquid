@@ -1,6 +1,0 @@
-{%- comment -%}
-  ik_badge_cashback: the "● 20% back" chip.
-  Inputs: card (reads card.cashback_pct), optional badge_bg.
-  Outputs: none. Prints nothing when the restaurant has no cash-back rate.
-{%- endcomment -%}
-{%- if card.cashback_pct -%}<span style="display:inline-block;background-color:{{ badge_bg | default: ik_color_chip_dark }};border-radius:8px;padding:{{ ik_space_xxs }}px {{ ik_space_xs }}px;color:{{ ik_color_light }};font-family:{{ ik_font }};font-size:{{ ik_text_xs }}px;font-weight:600"><span style="color:{{ ik_color_gold }}">&#9679;</span> {{ card.cashback_pct }}% back</span>{%- endif -%}

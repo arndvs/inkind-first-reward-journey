@@ -32,7 +32,6 @@ LIGHT = '<div style="background:{{ ik_color_light }};padding:{{ ik_space_md }}px
 GALLERY = [
     ("ik_button", DARK + "{% assign btn_style = 'primary' %}{{content_blocks.${ik_button}}}</div>", "btn_style: primary"),
     ("ik_button", LIGHT + "{% assign btn_style = 'dark' %}<div style=\"text-align:center\">{{content_blocks.${ik_button}}}</div></div>", "btn_style: dark"),
-    ("ik_badge_cashback", LIGHT + "{{content_blocks.${ik_badge_cashback}}}</div>"),
     ("ik_card_restaurant_feature", DARK + "{{content_blocks.${ik_card_restaurant_feature}}}</div>"),
     ("ik_card_restaurant_compact", LIGHT + "{% assign card = list_items[1] %}{{content_blocks.${ik_card_restaurant_compact}}}</div>"),
     ("ik_card_restaurant_row", LIGHT + "{% assign card = list_items[1] %}{{content_blocks.${ik_card_restaurant_row}}}</div>"),

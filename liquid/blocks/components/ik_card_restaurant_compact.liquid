@@ -1,16 +1,16 @@
 {%- comment -%}
   ik_card_restaurant_compact: light card with a full-width photo, for restaurant lists.
   Inputs: card (name, cuisine, price, address, distance_mi, cashback_pct, image_url, location_id).
-  Outputs: none. Sets card_link and badge_bg along the way.
+  Outputs: none. Sets card_link. No nested Content Blocks: Braze renders one level only, so the link and chip are inline.
 {%- endcomment -%}
-{{content_blocks.${ik_restaurant_link}}}
+{%- if card.location_id -%}{%- assign card_link = restaurant_base_url | append: card.location_id -%}{%- else -%}{%- assign card_link = explore_url -%}{%- endif -%}
 <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:{{ ik_color_white }};border:1px solid {{ ik_color_border }};border-radius:16px;overflow:hidden"><tbody>
 {%- if card.image_url %}
 <tr><td><a href="{{ card_link }}" target="_blank"><img src="{{ card.image_url }}" alt="{{ card.name | escape }}" width="{{ ik_content_width }}" style="display:block;width:100%;height:auto;border:0"></a></td></tr>
 {%- endif %}
 <tr><td style="padding:{{ ik_space_sm }}px;font-family:{{ ik_font }};text-align:left">
   <a href="{{ card_link }}" target="_blank" style="text-decoration:none;color:{{ ik_color_ink }};font-size:{{ ik_text_lg }}px;font-weight:800">{{ card.name | escape }}</a>
-  {%- if card.cashback_pct %}<span style="float:right">{% assign badge_bg = ik_color_dark %}{{content_blocks.${ik_badge_cashback}}}</span>{% endif %}
+  {%- if card.cashback_pct %}<span style="float:right"><span style="display:inline-block;background-color:{{ ik_color_dark }};border-radius:8px;padding:{{ ik_space_xxs }}px {{ ik_space_xs }}px;color:{{ ik_color_light }};font-family:{{ ik_font }};font-size:{{ ik_text_xs }}px;font-weight:600"><span style="color:{{ ik_color_gold }}">&#9679;</span> {{ card.cashback_pct }}% back</span></span>{% endif %}
   <p style="margin:{{ ik_space_xs }}px 0 0;color:{{ ik_color_muted }};font-size:{{ ik_text_sm }}px">{{ card.cuisine | escape }}{% if card.price %} · {{ card.price }}{% endif %}</p>
   {%- if card.address %}
   <p style="margin:{{ ik_space_xxs }}px 0 0;color:{{ ik_color_muted }};font-size:{{ ik_text_sm }}px">{{ card.address | escape }}{% if card.distance_mi %} · {{ card.distance_mi }} mi{% endif %}</p>
