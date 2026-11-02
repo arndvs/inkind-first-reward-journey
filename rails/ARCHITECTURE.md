@@ -400,7 +400,7 @@ All HTTP goes through WebMock. CI never needs Snowflake or Braze credentials.
 
 One commit per task, on `feature/rails-backend`. Each must leave `bin/rails test` green.
 
-**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–10 are done on `feature/rails-backend`: the app skeleton plus `PingJob`, the models and validations, the seeds, the Braze payloads, validator, `MoneyFormat` and contract test, the Braze client, the outbox and track job, the console, the Snowflake client and key-pair JWT, the warehouse export, and the Cloud Data Ingestion preview. Task 11 is done on `main`. Next is task 12, the README and CI.
+**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–12 are done on `feature/rails-backend`: the app skeleton plus `PingJob`, the models and validations, the seeds, the Braze payloads, validator, `MoneyFormat` and contract test, the Braze client, the outbox and track job, the console, the Snowflake client and key-pair JWT, the warehouse export, and the Cloud Data Ingestion preview. Task 11 is done on `main`. Task 12, the README and CI, is done with this commit.
 
 | # | Task | Done when |
 |---|---|---|

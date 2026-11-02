@@ -1,0 +1,25 @@
+name: Rails tests
+
+on:
+  push:
+    paths: ["rails/**", "01-data-contract.md", ".github/workflows/rails-tests.yml"]
+  pull_request:
+    paths: ["rails/**", "01-data-contract.md", ".github/workflows/rails-tests.yml"]
+
+# No secrets are used: the tests stub Snowflake and Braze with WebMock.
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: rails
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          working-directory: rails
+          bundler-cache: true
+      - run: bin/rails db:prepare test
+      - run: bin/brakeman --no-pager
+      - run: bin/rubocop
