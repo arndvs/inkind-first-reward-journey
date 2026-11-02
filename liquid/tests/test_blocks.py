@@ -1,6 +1,6 @@
 import re
 import pytest
-from harness import BLOCK_LAYER, BLOCKS, render
+from harness import BLOCK_LAYER, BLOCKS, render, single_file_message
 from build_previews import CONFIG, GALLERY, GALLERY_CONTEXT, gallery_page, render_gallery_block
 from fixtures import FEATURED, NEARBY
 
@@ -31,6 +31,19 @@ def test_colors_come_from_tokens(name):
 def test_block_renders_alone(name, wrapper):
     out = render_gallery_block(name, wrapper)
     assert out.strip() and "{{" not in out and "{%" not in out
+
+
+@pytest.mark.parametrize("name", ["ik_card_restaurant_feature", "ik_card_restaurant_compact", "ik_card_restaurant_row"])
+def test_cards_include_no_blocks(name):
+    # Braze renders one level of nesting only (message -> block -> block), so a card can't include blocks.
+    assert not re.search(r"\{\{content_blocks\.\$\{", BLOCKS[name])
+
+
+def test_nearby_call_is_cached_and_not_retried():
+    # :retry makes Braze abort the message after repeated failures, which skips the Explore fallback.
+    for source in (BLOCKS["ik_get_nearby"], single_file_message()):
+        call = re.search(r"\{%-?\s*connected_content [^%]*-?%\}", source).group(0)
+        assert ":cache_max_age 900" in call and ":retry" not in call, call
 
 
 def test_card_without_image_has_no_img_tag():

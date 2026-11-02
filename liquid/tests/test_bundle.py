@@ -32,9 +32,20 @@ def test_bundle_covers_every_block(bundle):
 
 
 def test_no_relative_image_paths_survive(bundle):
-    for path in (bundle / "blocks").glob("*.liquid"):
-        assert "../images/" not in path.read_text(), path.name
-    assert "../images/" not in (bundle / "email_body.liquid").read_text()
+    # Every file in the bundle, CSVs and guides included: Braze can't resolve ../images/ anywhere.
+    for path in sorted(p for p in bundle.rglob("*") if p.is_file()):
+        assert "../images/" not in path.read_text(encoding="utf-8"), path.relative_to(bundle)
+
+
+def test_catalog_images_point_at_the_repo_images_and_exist(bundle):
+    base = _load_tool().ASSET_BASE_URL
+    with open(bundle / "restaurants_catalog.csv", newline="", encoding="utf-8") as f:
+        rows = list(csv.DictReader(f))
+    for row in rows:
+        for field in ("image_url", "thumb_url"):
+            url = row[field]
+            assert url.startswith(base), (row["id"], field, url)
+            assert (LIQUID_DIR / "images" / url[len(base):]).exists(), url
 
 
 def test_catalog_csv_has_id_first_and_four_restaurants(bundle):
