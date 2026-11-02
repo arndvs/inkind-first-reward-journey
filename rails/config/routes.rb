@@ -13,7 +13,11 @@ Rails.application.routes.draw do
     resources :restaurant_views, only: :create
     resources :payments, only: :create
   end
-  resources :deliveries, only: :index
+  resources :deliveries, only: :index do
+    member do
+      post :resend
+    end
+  end
 
   get "warehouse", to: "warehouse#show", as: :warehouse
   post "warehouse/export", to: "warehouse#export", as: :warehouse_export

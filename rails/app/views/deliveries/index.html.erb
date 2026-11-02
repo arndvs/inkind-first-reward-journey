@@ -11,6 +11,7 @@
       <th>Attempts</th>
       <th>Created</th>
       <th>Recorded</th>
+      <th>Re-send</th>
     </tr>
   </thead>
   <tbody>
@@ -21,6 +22,7 @@
         <td><%= delivery.attempts %></td>
         <td><%= delivery.created_at.utc.strftime("%Y-%m-%d %H:%M:%S UTC") %></td>
         <td><%= delivery.recorded_at&.utc&.strftime("%Y-%m-%d %H:%M:%S UTC") || "-" %></td>
+        <td><%= button_to "Re-send", resend_delivery_path(delivery), method: :post, class: "outline" %></td>
       </tr>
     <% end %>
   </tbody>
