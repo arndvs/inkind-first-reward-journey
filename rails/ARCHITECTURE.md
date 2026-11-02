@@ -316,7 +316,7 @@ WHEN NOT MATCHED THEN INSERT (reward_id, user_id, reward_type, amount, min_spend
 ### 6.9 `Warehouse::CdiPreview`
 
 - `rows` runs `SELECT EXTERNAL_ID, UPDATED_AT, PAYLOAD FROM braze_first_reward_attributes WHERE UPDATED_AT > ?::TIMESTAMP_NTZ ORDER BY UPDATED_AT` with the stored watermark (default: epoch). `PAYLOAD` is `JSON.parse`d
-- `mark_synced!` sets the watermark to the newest `UPDATED_AT` shown
+- `mark_synced!(through)` stores the newest `UPDATED_AT` the page showed. The page sends it in a hidden field, so the watermark matches what was on screen. Snowflake returns `UPDATED_AT` as epoch seconds, which are parsed back to UTC times
 - The UI labels it: "Rows Braze Cloud Data Ingestion would pick up on its next sync. Braze runs the real sync; this page only previews it."
 
 ---
@@ -400,7 +400,7 @@ All HTTP goes through WebMock. CI never needs Snowflake or Braze credentials.
 
 One commit per task, on `feature/rails-backend`. Each must leave `bin/rails test` green.
 
-**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–4 are done on `feature/rails-backend`: the app skeleton plus `PingJob` (verified finished in Mission Control), the models and validations, the seeds, and the Braze payloads, validator, `MoneyFormat` and contract test. Next is task 5, `Braze::Client`.
+**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–10 are done on `feature/rails-backend`: the app skeleton plus `PingJob`, the models and validations, the seeds, the Braze payloads, validator, `MoneyFormat` and contract test, the Braze client, the outbox and track job, the console, the Snowflake client and key-pair JWT, the warehouse export, and the Cloud Data Ingestion preview. Task 11 is done on `main`. Next is task 12, the README and CI.
 
 | # | Task | Done when |
 |---|---|---|

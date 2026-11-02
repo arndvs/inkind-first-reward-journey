@@ -8,6 +8,11 @@ module ConsoleHelper
     "$#{MoneyFormat.display(reward.amount_cents)} unused"
   end
 
+  # JSON null shows as "null", so an empty reward field is visible in the preview.
+  def json_value(value)
+    value.nil? ? "null" : value.to_s
+  end
+
   def restaurant_choices(restaurants)
     restaurants.map { |restaurant| [ restaurant.name, restaurant.id ] }
   end

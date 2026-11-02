@@ -17,4 +17,6 @@ Rails.application.routes.draw do
 
   get "warehouse", to: "warehouse#show", as: :warehouse
   post "warehouse/export", to: "warehouse#export", as: :warehouse_export
+  get "warehouse/cdi_preview", to: "warehouse#cdi_preview", as: :warehouse_cdi_preview
+  post "warehouse/cdi_preview/mark_synced", to: "warehouse#mark_synced", as: :warehouse_cdi_mark_synced
 end
