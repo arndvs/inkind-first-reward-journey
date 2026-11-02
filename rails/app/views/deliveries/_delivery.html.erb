@@ -1,0 +1,7 @@
+<details>
+  <summary><code><%= delivery.idempotency_key %></code> · <%= delivery.status %> · attempts <%= delivery.attempts %></summary>
+  <% if delivery.last_error.present? %>
+    <p><small>Last error or partial-success detail: <%= delivery.last_error %></small></p>
+  <% end %>
+  <pre><code><%= JSON.pretty_generate(delivery.payload) %></code></pre>
+</details>

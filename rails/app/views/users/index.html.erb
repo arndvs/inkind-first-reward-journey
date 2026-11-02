@@ -1,0 +1,27 @@
+<% content_for(:title) { "Users" } %>
+
+<h1>Users</h1>
+<p>The ten sample users from <code>sql/00</code>. Open one to save, view, or pay.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>External ID</th>
+      <th>Reward</th>
+      <th>Saved</th>
+      <th>Paid</th>
+      <th>Deliveries</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @users.each do |user| %>
+      <tr>
+        <td><%= link_to user.external_id, user_path(user) %></td>
+        <td><%= reward_status(user) %></td>
+        <td><%= user.saved_restaurants.size %></td>
+        <td><%= user.transactions.any? ? "yes" : "no" %></td>
+        <td><%= user.braze_deliveries.size %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

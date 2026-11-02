@@ -1,0 +1,69 @@
+<% content_for(:title) { @user.external_id } %>
+
+<p><%= link_to "All users", root_path %></p>
+
+<h1><%= @user.external_id %></h1>
+<p><small><%= @user.email %></small></p>
+
+<% if @form_errors.present? %>
+  <article role="alert">
+    <ul>
+      <% @form_errors.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </article>
+<% end %>
+
+<section>
+  <h2>State</h2>
+  <ul>
+    <li>Reward: <%= reward_status(@user) %></li>
+    <li>Saved restaurants: <%= @saved.map { |saved| saved.restaurant.key }.join(", ").presence || "none" %></li>
+    <li>Paid: <%= @user.transactions.any? ? "yes" : "no" %></li>
+  </ul>
+</section>
+
+<section>
+  <h2>Save a restaurant</h2>
+  <%= form_with url: user_saved_restaurants_path(@user), scope: :saved_restaurant do |f| %>
+    <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
+    <%= f.submit "Save restaurant" %>
+  <% end %>
+</section>
+
+<section>
+  <h2>View a restaurant</h2>
+  <%= form_with url: user_restaurant_views_path(@user), scope: :restaurant_view do |f| %>
+    <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
+    <%= f.submit "Record view" %>
+  <% end %>
+</section>
+
+<section>
+  <h2>Pay</h2>
+  <%= form_with url: user_payments_path(@user), scope: :payment do |f| %>
+    <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
+    <label>Subtotal (food and beverage, in dollars)
+      <%= f.text_field :subtotal, placeholder: "62.40", inputmode: "decimal" %>
+    </label>
+    <label>Tip (in dollars)
+      <%= f.text_field :tip, placeholder: "0", inputmode: "decimal" %>
+    </label>
+    <label>
+      <%= f.check_box :use_reward, {}, "1", "0" %>
+      Use the referral reward
+    </label>
+    <%= f.submit "Record payment" %>
+  <% end %>
+</section>
+
+<section>
+  <h2>Outbox</h2>
+  <% if @deliveries.empty? %>
+    <p>No deliveries yet.</p>
+  <% end %>
+  <% @deliveries.each do |delivery| %>
+    <%= render "deliveries/delivery", delivery: delivery %>
+  <% end %>
+</section>

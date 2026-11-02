@@ -19,11 +19,26 @@
     <link rel="apple-touch-icon" href="/icon.png">
 
     <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
   <body>
-    <%= yield %>
+    <header class="container">
+      <nav>
+        <ul><li><strong>Inkind Rails console</strong></li></ul>
+        <ul>
+          <li><%= link_to "Users", root_path %></li>
+          <li><%= link_to "Deliveries", deliveries_path %></li>
+          <li><a href="/admin/jobs">Jobs</a></li>
+        </ul>
+      </nav>
+      <p><mark>Record mode: payloads are built and stored. Nothing is sent to Braze. All data is fictional.</mark></p>
+    </header>
+    <main class="container">
+      <% if notice %><p><ins><%= notice %></ins></p><% end %>
+      <%= yield %>
+    </main>
   </body>
 </html>
