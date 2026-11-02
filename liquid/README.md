@@ -112,12 +112,17 @@ To rebuild the previews, run `python liquid/tests/build_previews.py`. Add `--scr
 
 Observed in a Braze trial workspace, with the Live workspace not used for sends. These are things seen in the Braze UI, not Braze documentation.
 
-**Renders**
+**Observed in the trial workspace**
 
-- The $25 user (u_1001) gets the full email, with the subject "Your $25 toward a $50+ meal is waiting" and the Explore button.
-- The $12.50 user (u_1003) shows "$12.50" after `first_reward_display` is set to String in the import mapping. Braze guessed Number by default.
-- The zero-amount, missing-minimum and no-reward cases each stop with their own `abort_message`.
-- The saved-restaurant card renders from the `restaurants` Catalog. This was tested with a temporary Catalog lookup pinned to `r_101`.
+- The $25 user (u_1001) gets the full email: subject "Your $25 toward a $50+ meal is waiting", with the Explore button.
+- The $12.50 user (u_1003) shows "$12.50", after `first_reward_display` was set to String in the import mapping. Braze guessed Number, which showed "$12.5".
+- The zero-amount, missing-minimum and no-reward cases each abort with their own `abort_message`.
+- The saved-restaurant card renders from the `restaurants` Catalog. It was tested with a temporary lookup pinned to `r_101`, because CSV import can't set arrays.
+
+**Documented by Braze, not observed here**
+
+- Content Blocks can be nested only once. A third level is removed from the message (Braze's Content Blocks docs). The cards in this repo include no blocks, so this limit is avoided rather than tested.
+- A Connected Content call with `:retry` aborts the message after five failed attempts (Braze's Connected Content retries docs). That's why `:retry` is not used.
 
 **Trial limits, and the workaround for each**
 
@@ -125,7 +130,7 @@ Observed in a Braze trial workspace, with the Live workspace not used for sends.
 |---|---|---|
 | Connected Content | Blocked, even inside a Liquid comment | `ik_get_nearby` was loaded as a stub that makes no call. The Explore fallback is what shows |
 | Content Blocks | 8 maximum | The visible blocks were written inline in a trial email body. [`email_body_trial.liquid`](../liquid/build/braze-bundle/email_body_trial.liquid) keeps includes for blocks 01–08 and writes 09–17 inline |
-| CSV import | Can't set arrays | `saved_restaurants` is left out of `users_import.csv`. The saved card is tested with a custom user in Preview |
+| CSV import | Can't set arrays | `saved_restaurants` is left out of `users_import.csv`. The saved card is tested with a pinned temporary lookup |
 | REST API | Not available | Nothing is sent. The Braze payloads are built and stored in Rails instead |
 
 **Other findings**

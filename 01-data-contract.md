@@ -21,6 +21,18 @@ The journey needs browse intent, the referral reward, and purchase state on the 
 | Push / email subscription state | Standard | SDK, preferences | Channel routing |
 | Total sessions, First Used App | Collected by the Braze SDK | SDK | Entry filters for the browsing Canvas (02, section 4) |
 
+**Braze types.** Set these on purpose in Braze, because Braze guesses a type when a value arrives without one:
+
+| Attribute | Braze type | Why |
+|---|---|---|
+| `first_reward_amount` | Number | Used in the entry filter and the abort check |
+| `first_reward_display` | String | Shows "12.50" as text. As a Number, Braze showed "12.5" in the trial |
+| `first_reward_min_spend` | Number | Used in the copy as a whole number |
+| `first_transaction_at` | Time | Used for the "never paid" filter |
+| `saved_restaurants` | Array | A list of restaurant IDs. CSV import can't set it |
+
+Arrays arrive only through `/users/track` or the warehouse sync (Cloud Data Ingestion), not through CSV import. The `restaurants` Catalog imports every column as String unless the type is set during import, so set numeric columns (`rating`, `cashback_pct`) on purpose.
+
 `saved_restaurants` stores IDs because they stay stable when a restaurant changes its name; the message looks up the current name and card details from the `restaurants` Catalog and builds the link from `location_id`. Address and distance come from the recommendations endpoint instead, because distance depends on where the user is. The `restaurant_saved` event's `restaurant_id` reaches the message as Canvas context (`context.${restaurant_id}`), so the message names the restaurant that triggered entry and uses `saved_restaurants` as the fallback.
 
 The referral reward is its own record, not a wallet balance. The app's terms say a Reward applies only when the food and beverage subtotal meets its minimum and the bill is paid in the app, and that it can't be combined with inKind Cash, Cash Back, or other wallet balances. So the journey reads the reward's amount and minimum directly.
