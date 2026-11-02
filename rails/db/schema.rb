@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_01_220009) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_02_100001) do
   create_table "app_events", force: :cascade do |t|
     t.integer "user_id", null: false
     t.string "event_name", null: false
@@ -94,6 +94,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_01_220009) do
     t.datetime "exported_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "reward_amount_cents"
     t.index ["restaurant_id"], name: "index_transactions_on_restaurant_id"
     t.index ["transaction_key"], name: "index_transactions_on_transaction_key", unique: true
     t.index ["user_id"], name: "index_transactions_on_user_id"

@@ -90,15 +90,24 @@ transactions = [
   { key: "tx_04", user: "u_1009", subtotal: 7200, applied: false, at: "2026-10-14 19:20:00" }
 ]
 
-transactions.each do |row|
-  Txn.find_or_create_by!(transaction_key: row[:key]) do |txn|
-    txn.user = User.find_by!(external_id: row[:user])
-    txn.subtotal_cents = row[:subtotal]
-    txn.reward_applied = row[:applied]
-    txn.exported_at = exported_at
-    txn.created_at = at.(row[:at])
-  end
+# insert_all skips callbacks, so a seeded payment does not enqueue a purchase job.
+# Re-running adds nothing: transaction_key is unique.
+transaction_rows = transactions.map do |row|
+  applied = row[:applied]
+  {
+    transaction_key: row[:key],
+    user_id: User.find_by!(external_id: row[:user]).id,
+    restaurant_id: nil,
+    subtotal_cents: row[:subtotal],
+    tip_cents: 0,
+    reward_applied: applied,
+    reward_amount_cents: applied ? 2500 : nil,
+    exported_at: exported_at,
+    created_at: at.(row[:at]),
+    updated_at: at.(row[:at])
+  }
 end
+Txn.insert_all(transaction_rows, unique_by: :transaction_key)
 
 # tx_01 used rw_02, so the reward is redeemed after the payment exists.
 rw_02 = Reward.find_by!(reward_key: "rw_02")
@@ -112,16 +121,23 @@ saves = [
   { user: "u_1010", restaurant: "r_219", at: "2026-10-13 20:02:00" }
 ]
 
+# Saves and events use insert_all, so seeding enqueues no jobs. Re-running adds nothing:
+# saves are unique per user and restaurant, and an event is skipped when it already exists.
+save_rows = []
+event_rows = []
 saves.each do |row|
   user = User.find_by!(external_id: row[:user])
   restaurant = Restaurant.find_by!(key: row[:restaurant])
   saved_at = at.(row[:at])
 
-  SavedRestaurant.find_or_create_by!(user: user, restaurant: restaurant) do |saved|
-    saved.created_at = saved_at
-  end
+  save_rows << { user_id: user.id, restaurant_id: restaurant.id, created_at: saved_at, updated_at: saved_at }
 
-  AppEvent.find_or_create_by!(user: user, event_name: "restaurant_saved", restaurant: restaurant, occurred_at: saved_at) do |event|
-    event.exported_at = exported_at
-  end
+  next if AppEvent.exists?(user: user, event_name: "restaurant_saved", restaurant: restaurant, occurred_at: saved_at)
+
+  event_rows << {
+    user_id: user.id, event_name: "restaurant_saved", restaurant_id: restaurant.id,
+    occurred_at: saved_at, exported_at: exported_at
+  }
 end
+SavedRestaurant.insert_all(save_rows, unique_by: %i[ user_id restaurant_id ])
+AppEvent.insert_all(event_rows) if event_rows.any?

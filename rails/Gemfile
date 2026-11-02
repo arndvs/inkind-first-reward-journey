@@ -53,3 +53,5 @@ gem "faraday", "~> 2.15"
 gem "jwt", "~> 3.3"
 
 gem "webmock", "~> 3.34", group: :test
+
+gem "minitest-mock", "~> 5.27", group: :test

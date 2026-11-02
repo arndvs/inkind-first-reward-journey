@@ -22,7 +22,7 @@ class BrazePayloadsTest < ActiveSupport::TestCase
 
   test "purchase includes restaurant_id and reward_amount when a reward is applied" do
     txn = Txn.create!(transaction_key: "tx_r", user: @user, restaurant: @lantern, subtotal_cents: 6240,
-                      tip_cents: 1200, reward_applied: true, created_at: Time.utc(2026, 10, 25, 19, 41))
+                      tip_cents: 1200, reward_applied: true, reward_amount_cents: 2500, created_at: Time.utc(2026, 10, 25, 19, 41))
 
     properties = Braze::Payloads.purchase(txn)["purchases"].first["properties"]
 
@@ -34,7 +34,7 @@ class BrazePayloadsTest < ActiveSupport::TestCase
 
   test "payloads never contain an email or other personal field" do
     txn = Txn.create!(transaction_key: "tx_pii", user: @user, restaurant: @lantern, subtotal_cents: 6240,
-                      tip_cents: 0, reward_applied: true, created_at: Time.utc(2026, 10, 25, 19, 41))
+                      tip_cents: 0, reward_applied: true, reward_amount_cents: 2500, created_at: Time.utc(2026, 10, 25, 19, 41))
 
     assert_not_includes Braze::Payloads.purchase(txn).to_json, "@example.com"
     assert_not_includes Braze::Payloads.purchase(txn).to_json, "email"
@@ -56,5 +56,16 @@ class BrazePayloadsTest < ActiveSupport::TestCase
     time = Braze::Payloads.restaurant_saved(saved)["events"].first["time"]
 
     assert_equal "2026-10-24T18:02:00Z", time
+  end
+
+  test "the purchase reward amount comes from the transaction, not the reward record" do
+    txn = Txn.create!(transaction_key: "tx_snap", user: @user, restaurant: @lantern, subtotal_cents: 6240,
+                      tip_cents: 0, reward_applied: true, reward_amount_cents: 2500,
+                      created_at: Time.utc(2026, 10, 25, 19, 41))
+    Reward.find_by!(reward_key: "rw_01").update!(amount_cents: 1000)
+
+    properties = Braze::Payloads.purchase(txn)["purchases"].first["properties"]
+
+    assert_equal 25, properties["reward_amount"]
   end
 end

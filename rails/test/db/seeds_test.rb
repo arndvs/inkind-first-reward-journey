@@ -56,6 +56,12 @@ class SeedsTest < ActiveJob::TestCase
     assert_equal 4, Txn.where(restaurant_id: nil).count
   end
 
+  test "tx_01 records the reward amount it used" do
+    Rails.application.load_seed
+
+    assert_equal 2500, Txn.find_by!(transaction_key: "tx_01").reward_amount_cents
+  end
+
   test "seeding enqueues no jobs" do
     assert_no_enqueued_jobs { Rails.application.load_seed }
   end

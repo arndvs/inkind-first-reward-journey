@@ -14,7 +14,8 @@ class TxnTest < ActiveSupport::TestCase
       restaurant: restaurant,
       subtotal_cents: subtotal_cents,
       tip_cents: 0,
-      reward_applied: reward_applied
+      reward_applied: reward_applied,
+      reward_amount_cents: reward_applied ? 2500 : nil
     )
   end
 
@@ -72,5 +73,13 @@ class TxnTest < ActiveSupport::TestCase
 
   test "an app payment with a restaurant is valid" do
     assert build_txn(reward_applied: false).valid?(:app_payment)
+  end
+
+  test "a applied reward needs its amount recorded on the transaction" do
+    txn = build_txn(subtotal_cents: 6240, reward_applied: true)
+    txn.reward_amount_cents = nil
+
+    assert_not txn.valid?
+    assert_predicate txn.errors[:reward_amount_cents], :any?
   end
 end

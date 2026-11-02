@@ -10,7 +10,11 @@ class Txn < ApplicationRecord
   validates :transaction_key, presence: true, uniqueness: true
   validates :subtotal_cents, numericality: { only_integer: true, greater_than: 0 }
   validates :tip_cents, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
+  validates :reward_amount_cents, numericality: { only_integer: true, greater_than: 0 }, if: :reward_applied?
   validate :reward_is_usable, if: :reward_applied?
+
+  # After commit, so a rolled-back payment never reaches Braze.
+  after_create_commit { Braze::TrackJob.perform_later("purchase", to_global_id.to_s) }
 
   private
 

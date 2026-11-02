@@ -47,7 +47,7 @@ module Braze
       properties["subtotal"] = MoneyFormat.number(txn.subtotal_cents)
       properties["tip"] = MoneyFormat.number(txn.tip_cents)
       properties["reward_applied"] = txn.reward_applied
-      properties["reward_amount"] = MoneyFormat.number(Reward.referral_welcome.find_by!(user: user).amount_cents) if txn.reward_applied
+      properties["reward_amount"] = MoneyFormat.number(txn.reward_amount_cents) if txn.reward_applied
 
       {
         "purchases" => [

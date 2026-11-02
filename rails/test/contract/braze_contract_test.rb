@@ -15,7 +15,7 @@ class BrazeContractTest < ActiveSupport::TestCase
     Reward.create!(reward_key: "rw_contract", user: @user, reward_type: "referral_welcome",
                    amount_cents: 2500, min_spend_cents: 5000)
     @txn = Txn.create!(transaction_key: "tx_contract", user: @user, restaurant: @mexican,
-                       subtotal_cents: 6240, tip_cents: 1200, reward_applied: true,
+                       subtotal_cents: 6240, tip_cents: 1200, reward_applied: true, reward_amount_cents: 2500,
                        created_at: Time.utc(2026, 10, 25, 19, 41, 0))
   end
 

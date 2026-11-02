@@ -87,7 +87,7 @@ Name the model `Txn` (table `transactions`) to avoid clashing with `ActiveRecord
 | Job UI | `mission_control-jobs`, mounted at `/admin/jobs`. No login in development (local only); basic auth from credentials anywhere else |
 | HTTP | `faraday` |
 | JWT | `jwt` (RS256) |
-| Tests | Minitest (default), `webmock` |
+| Tests | Minitest (default), `webmock`, `minitest-mock` (Minitest 6 no longer bundles `stub`) |
 | Lint and security | `rubocop-rails-omakase`, `brakeman` (both Rails defaults) |
 | Dev setup | One working copy of the repo, edited in VS Code on Windows. Ruby and Rails are installed in WSL2 Ubuntu, and every Rails command runs from WSL against the same folder (`/mnt/c/…/rails`). Don't create other clones. Native Windows Ruby isn't supported for this project |
 
@@ -124,7 +124,7 @@ All times are stored in UTC. Money is integer cents; it's converted to `NUMBER(1
 | `restaurants` | `key:string`, `name`, `location_id`, `cuisine`, `price`, `rating:decimal`, `cashback_pct:integer`, `image_url`, `thumb_url`, `description:text`, timestamps | unique `key` |
 | `rewards` | `reward_key:string`, `user:references`, `reward_type:string`, `amount_cents:integer`, `min_spend_cents:integer` (nullable), `redeemed_at:datetime`, `exported_at:datetime`, timestamps | unique `reward_key`. One `referral_welcome` per user |
 | `saved_restaurants` | `user:references`, `restaurant:references`, timestamps | unique `[user_id, restaurant_id]` |
-| `transactions` (`Txn`) | `transaction_key:string`, `user:references`, `restaurant:references` (nullable: imported history has none; app payments require one), `subtotal_cents:integer`, `tip_cents:integer` (default 0), `reward_applied:boolean`, `exported_at:datetime`, timestamps | unique `transaction_key` |
+| `transactions` (`Txn`) | `transaction_key:string`, `user:references`, `restaurant:references` (nullable: imported history has none; app payments require one), `subtotal_cents:integer`, `tip_cents:integer` (default 0), `reward_applied:boolean`, `reward_amount_cents:integer` (set only when a reward applies; the purchase payload reads it), `exported_at:datetime`, timestamps | unique `transaction_key` |
 | `app_events` | `user:references`, `event_name:string`, `restaurant:references` (nullable), `occurred_at:datetime`, `exported_at:datetime` | index `[exported_at]` |
 | `braze_deliveries` | `idempotency_key:string`, `user:references`, `endpoint:string`, `payload:json`, `status:string` (`pending`, `recorded`, `failed`), `attempts:integer` (default 0), `last_error:text`, `recorded_at:datetime`, timestamps | **unique `idempotency_key`** |
 | `cdi_watermarks` | `view_name:string`, `synced_through:datetime` | unique `view_name` |
