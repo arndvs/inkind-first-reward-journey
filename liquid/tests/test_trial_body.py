@@ -53,7 +53,13 @@ def test_trial_body_renders_the_same_html_as_the_full_body(bundle_bodies, case):
         # Abort cases compare their reason instead of HTML; the test below checks that too.
         assert actual == expected, f"{case}: trial body aborts differently"
         return
-    assert normalize(actual) == normalize(expected), f"{case}: trial body differs from the full body"
+    # The one allowed difference is the footer's preferences link, which is the link whose text is
+    # "Preferences". The trial has no preference center, so that link points at the Explore page instead.
+    # Anchor on the link text, so the Explore button can't be mistaken for it.
+    footer_link = re.compile(r'<a href="https://www\.inkind\.com"([^>]*)>(?=[^<]*Preferences)')
+    restored = footer_link.sub(r'<a href="#preferences"\1>', actual)
+    assert normalize(restored) == normalize(expected), \
+        f"{case}: trial body differs from the full body beyond the preferences link"
 
 
 def test_trial_body_aborts_for_the_same_reasons(bundle_bodies):

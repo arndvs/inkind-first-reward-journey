@@ -4,8 +4,8 @@
   Outputs: ik_brand_name, ik_company_name, ik_company_address, ik_logo_url, ik_icon_*_url,
   ik_color_*, ik_font, ik_text_*, ik_space_*, ik_width, ik_content_width, ik_button_width, ik_thumb.
   Notes: colors, font, logo, and icons match inKind's emails; swapping this block restyles
-  every message. Image paths point at liquid/images/ so previews render offline; in Braze,
-  each becomes the image's media library URL. The legal name and address are placeholders.
+  every message. Image paths are written as ../images/ and rewritten to the repo's raw GitHub
+  URLs by the bundle tool, because Braze can't read relative paths. The legal name and address are placeholders.
   The footer's preference center name is set in ik_footer, because Braze needs it written
   literally in the tag.
 {%- endcomment -%}

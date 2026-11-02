@@ -1,6 +1,7 @@
 {%- comment -%}
   First-reward email, assembled from Content Blocks.
-  Subject (set in the Braze composer): Your {{ offer }} is waiting
+  Subject (set in the Braze composer): Your {{ offer }} is waiting. Put the ik_get_reward block
+  first in the subject, because offer is set by that block. The trial was tested with it.
   Cases: saved restaurant -> feature card; nothing saved -> nearby list as image-left rows;
   nearby call fails -> explore button; no usable reward -> abort before any lookup.
 {%- endcomment -%}

@@ -79,7 +79,21 @@ def build_trial_body(out):
         return re.sub(INCLUDE_PATTERN, replace, text)
 
     text = inline(source)
+    # The trial workspace has no preference center, so its link goes to the Explore page instead.
+    text = re.sub(r"\{\{preference_center\.\$\{\w+\}\}\}", "{{ explore_url }}", text)
     (out / "email_body_trial.liquid").write_text(rewrite_assets(text) + "\n", encoding="utf-8")
+
+
+TRIAL_NEARBY_STUB = """{%- comment -%}
+  ik_get_nearby, trial stub. Connected Content is blocked in the Braze trial workspace, even inside a
+  Liquid comment, so this version makes no call. nearby stays empty, and the message shows the Explore button.
+  The live block is 03_ik_get_nearby.liquid; use it only in a workspace that allows Connected Content.
+{%- endcomment -%}
+"""
+
+
+def build_trial_stub(out):
+    (out / "blocks" / "03_ik_get_nearby.trial.liquid").write_text(TRIAL_NEARBY_STUB, encoding="utf-8")
 
 
 CATALOG_FIELDS = ["name", "location_id", "cuisine", "price", "rating", "cashback_pct",
@@ -109,7 +123,8 @@ def rewrite_value(value):
 
 
 def build_catalog(out):
-    with open(out / "restaurants_catalog.csv", "w", newline="", encoding="utf-8") as f:
+    # Braze names a Catalog after its file, so the file is named for the Catalog it becomes.
+    with open(out / "restaurants.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, quoting=csv.QUOTE_ALL)
         writer.writerow(["id"] + CATALOG_FIELDS)
         for key, item in catalog_rows():
@@ -164,29 +179,32 @@ def build_users(out):
 
 PREVIEW_CASES = """# Expected Braze preview results
 
-Preview each user in the Braze composer with "Preview as". Expected output:
+Preview each user in the Braze composer with "Select existing user". Expected subject: "Your $25 toward a $50+ meal is waiting" for every user with an unused reward, with the offer in the hero and the button as listed.
 
 | User | Expected |
 |---|---|
 | u_1001 | "$25 toward a $50+ meal". No saved restaurant on the profile and no live recommendations endpoint, so the Explore fallback |
-| u_1003 | "$12.50". If it shows "$12.5", the CSV import typed first_reward_display as a number. Record that as a finding (the warehouse sends it as a JSON string) |
+| u_1003 | "$12.50", after first_reward_display is set to String in the import mapping. Braze guessed Number by default; with Number it shows "$12.5" |
 | u_1002 | Abort: no unused reward |
 | u_1005 | Abort: no unused reward |
 | u_1008 | Abort: reward minimum missing |
 | u_9001 | Abort: reward amount is zero |
-| Saved-restaurant card | Needs saved_restaurants or Canvas context, which CSV import can't set. Try "Preview as, Custom user" with saved_restaurants = ["r_101"]. If the preview won't take an array, the card can't be rendered in this workspace. Note it in the checklist; don't change the message |
+| Saved-restaurant card | Needs saved_restaurants, which CSV import can't set. Test it with a temporary lookup pinned to r_101: add `{% assign saved_id = 'r_101' %}` at the top of the email body and the lookup `{% catalog_items restaurants {{ saved_id }} %}` before the card, then remove both lines when the test is done. Don't change the message |
 """
 
 CHECKLIST = """# Braze Live workspace: manual steps, in order
 
 Never launch a campaign or Canvas in the Live workspace. Preview, and send tests to your own address only.
 
-1. **Create the Catalog** named exactly `restaurants`, from `restaurants_catalog.csv`. The name can't be changed after launch.
-2. **Create one Content Block per file in `blocks/`.** Name each block exactly as the file name without its number prefix (for example `01_ik_brand.liquid` becomes `ik_brand`). Names can't be changed after launch.
-3. **Import users** from `users_import.csv`. Columns are external_id and the four first_reward fields. There are no emails and no saved_restaurants column; CSV import can't set arrays.
-4. **Preview** u_1001, u_1003, u_1002, u_1005, u_1008 and u_9001 against `PREVIEW_CASES.md`. Record anything that differs.
-5. **Keep "Auto-approve actions" off** in the BrazeAI Operator panel.
-6. **Record findings** in the repo's README, including the display-type and saved_restaurants results.
+1. **Create the Catalog** `restaurants` from `restaurants.csv`. Keep the file's name as the Catalog name. The name can't be changed after launch.
+2. **Import users** from `users_import.csv`. In Column mapping, set `first_reward_display` to **String**, and leave the rest as detected. Braze guesses Number otherwise, and `12.50` would show as `12.5`.
+3. **Data Settings:** add `saved_restaurants` as an **Array**. CSV import can't set arrays, so this only creates the attribute.
+4. **Create the Content Blocks** from `blocks/`. Name each block as the file name without its number (`01_ik_brand.liquid` becomes `ik_brand`). Use `03_ik_get_nearby.trial.liquid` for `ik_get_nearby`, not the live file, because Connected Content is blocked in the trial. Blocks that read a custom attribute can't be saved until that attribute exists, so do step 2 and 3 first.
+5. **Create the email** from `email_body_trial.liquid`, which uses at most eight Content Blocks. Set the subject to `{{content_blocks.${ik_get_reward}}}Your {{ offer }} is waiting`. The preference link is replaced with the Explore link, because the trial has no preference center. Don't launch it.
+6. **Preview** with "Select existing user": u_1001, u_1003, u_1002, u_1005, u_1008 and u_9001, against `PREVIEW_CASES.md`. Then the saved-restaurant card with the pinned lookup. Record anything that differs.
+7. **Keep "Auto-approve actions" off** in the BrazeAI Operator panel.
+
+**Trial limits.** A trial workspace allows 8 Content Blocks (so use the trial body), blocks Connected Content even inside a Liquid comment (so use the trial stub), has no REST API, and has no preference center. The full body and the live blocks are for a workspace without these limits.
 """
 
 
@@ -202,6 +220,7 @@ def main():
     count = build_blocks(OUT)
     build_email_body(OUT)
     build_trial_body(OUT)
+    build_trial_stub(OUT)
     build_catalog(OUT)
     build_users(OUT)
     build_guides(OUT)

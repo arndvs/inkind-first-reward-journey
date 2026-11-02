@@ -27,8 +27,9 @@ def _load_tool():
 
 
 def test_bundle_covers_every_block(bundle):
+    # Every live block, plus the one trial stub that stands in for ik_get_nearby.
     written = {p.read_text() for p in (bundle / "blocks").glob("*.liquid")}
-    assert len(written) == len(BLOCKS)
+    assert len(written) == len(BLOCKS) + 1
 
 
 def test_no_relative_image_paths_survive(bundle):
@@ -39,7 +40,7 @@ def test_no_relative_image_paths_survive(bundle):
 
 def test_catalog_images_point_at_the_repo_images_and_exist(bundle):
     base = _load_tool().ASSET_BASE_URL
-    with open(bundle / "restaurants_catalog.csv", newline="", encoding="utf-8") as f:
+    with open(bundle / "restaurants.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.DictReader(f))
     for row in rows:
         for field in ("image_url", "thumb_url"):
@@ -49,7 +50,7 @@ def test_catalog_images_point_at_the_repo_images_and_exist(bundle):
 
 
 def test_catalog_csv_has_id_first_and_four_restaurants(bundle):
-    with open(bundle / "restaurants_catalog.csv", newline="", encoding="utf-8") as f:
+    with open(bundle / "restaurants.csv", newline="", encoding="utf-8") as f:
         rows = list(csv.reader(f))
     assert rows[0][0] == "id"
     assert rows[0][1:] == ["name", "location_id", "cuisine", "price", "rating",
