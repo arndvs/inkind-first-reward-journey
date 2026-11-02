@@ -6,7 +6,8 @@ import sys
 
 import pytest
 
-from harness import LIQUID_DIR
+from fixtures import CASES
+from harness import BLOCKS, LIQUID_DIR, render
 
 TOOL = LIQUID_DIR / "tools" / "braze_bundle.py"
 BUILD = LIQUID_DIR / "build" / "braze-bundle"
@@ -27,8 +28,17 @@ def test_catalog_file_is_named_after_the_catalog(bundle):
 def test_trial_stub_replaces_nearby_and_makes_no_call(bundle):
     stub = (bundle / "blocks" / "03_ik_get_nearby.trial.liquid").read_text(encoding="utf-8")
     assert "connected_content" not in stub.lower()
-    assert "nearby" in stub  # the same output name, so the message's logic still works
     assert "trial" in stub.lower()
+
+
+def test_trial_body_with_the_stub_shows_explore_and_no_nearby_list(bundle):
+    # Renders the trial body with the stub in place of ik_get_nearby, the way the trial workspace runs it.
+    stub = (bundle / "blocks" / "03_ik_get_nearby.trial.liquid").read_text(encoding="utf-8").rstrip("\n")
+    trial = (bundle / "email_body_trial.liquid").read_text(encoding="utf-8")
+    html = render(trial, CASES["nearby-picks"], blocks={**BLOCKS, "ik_get_nearby": stub})
+    assert "Find a spot near you" in html
+    assert 'href="https://www.inkind.com"' in html
+    assert "Near you" not in html
 
 
 def test_trial_stub_is_written_only_as_an_extra_file(bundle):
