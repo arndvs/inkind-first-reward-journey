@@ -2,9 +2,9 @@
   ik_get_nearby: up to three nearby restaurants from the recommendations service.
   Inputs: the user's ID.
   Outputs: nearby (array), or nothing if the call fails or returns no restaurants.
-  Notes: cached 15 minutes, retried once. The endpoint is a placeholder.
+  Notes: cached 15 minutes, not retried. With :retry, Braze aborts the message after repeated failures, which would skip the Explore fallback. Retry only a call the message can't do without. The endpoint is a placeholder.
 {%- endcomment -%}
-{%- connected_content https://api.example.com/v1/recommendations/nearby?user_id={{ ${user_id} | url_encode }}&limit=3 :save recs :cache_max_age 900 :retry -%}
+{%- connected_content https://api.example.com/v1/recommendations/nearby?user_id={{ ${user_id} | url_encode }}&limit=3 :save recs :cache_max_age 900 -%}
 {%- if recs.__http_status_code__ == 200 -%}
   {%- if recs.restaurants.size > 0 -%}{%- assign nearby = recs.restaurants -%}{%- endif -%}
 {%- endif -%}

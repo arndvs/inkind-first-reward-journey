@@ -56,7 +56,7 @@
 {%- if saved_name -%}
 Your {{ offer }} is waiting at {{ saved_name }}. Dinner tonight?
 {%- else -%}
-  {%- connected_content https://api.example.com/v1/recommendations/nearby?user_id={{ ${user_id} | url_encode }}&limit=3 :save recs :cache_max_age 900 :retry -%}
+  {%- connected_content https://api.example.com/v1/recommendations/nearby?user_id={{ ${user_id} | url_encode }}&limit=3 :save recs :cache_max_age 900 -%}
   {%- if recs.__http_status_code__ != 200 or recs.restaurants.size == 0 -%}
 Your {{ offer }} is waiting. Find a spot near you tonight.
   {%- else -%}
