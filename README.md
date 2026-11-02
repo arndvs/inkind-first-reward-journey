@@ -24,6 +24,7 @@ The SQL running in Snowflake (4:42):
 | [`04-qa-and-measurement.md`](./04-qa-and-measurement.md) | Pre-launch send-safety and rendering checks, how I'd ship the backend change, metrics by cohort, what I'd confirm first |
 | [`sql/`](./sql/) | A runnable proof of concept: synthetic sample data, the Cloud Data Ingestion view, both audience checks, and pass/fail checks to run in a Snowflake worksheet |
 | [`liquid/`](./liquid/) | `03` split into reusable Braze Content Blocks: design tokens, shared logic for push and email, then elements, components, and sections. Includes a component gallery and render tests for the QA cases |
+| [`rails/`](./rails/) | The backend half of the data contract. It builds the `/users/track` events in `01` once per action (recorded, not sent), exports rows to Snowflake with their load time, and previews what Cloud Data Ingestion would sync |
 
 With only a few minutes, start with the "Who can receive it" checks in [`04-qa-and-measurement.md`](./04-qa-and-measurement.md). They decide who can get a message before anything sends.
 

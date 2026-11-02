@@ -1,0 +1,39 @@
+<% content_for(:title) { "Cloud Data Ingestion preview" } %>
+
+<h1>Cloud Data Ingestion preview</h1>
+<p>Rows Braze Cloud Data Ingestion would pick up on its next sync. Braze runs the real sync; this page only previews it.</p>
+<p>Rows at or before the watermark are not shown: <code><%= @watermark.utc.iso8601 %></code></p>
+
+<% if @rows.empty? %>
+  <p>No rows changed since the watermark.</p>
+<% else %>
+  <table>
+    <thead>
+      <tr>
+        <th>External ID</th>
+        <th>UPDATED_AT (UTC)</th>
+        <th>first_reward_amount</th>
+        <th>first_reward_display</th>
+        <th>first_reward_min_spend</th>
+        <th>first_transaction_at</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @rows.each do |row| %>
+        <tr>
+          <td><%= row[:external_id] %></td>
+          <td><%= row[:updated_at].utc.iso8601 %></td>
+          <td><%= json_value(row[:payload]["first_reward_amount"]) %></td>
+          <td><%= json_value(row[:payload]["first_reward_display"]) %></td>
+          <td><%= json_value(row[:payload]["first_reward_min_spend"]) %></td>
+          <td><%= json_value(row[:payload]["first_transaction_at"]) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <%= button_to "Mark synced through #{@newest.utc.iso8601}", warehouse_cdi_mark_synced_path,
+                method: :post, params: { synced_through: @newest.utc.iso8601 } %>
+<% end %>
+
+<p><%= link_to "Back to the warehouse", warehouse_path %></p>

@@ -1,0 +1,29 @@
+# Rails 8 defaults, written by hand because --skip-git also skips .gitignore.
+# Secrets: never commit these.
+/config/master.key
+/config/credentials/*.key
+.env*
+
+# Databases (SQLite files and their journals)
+/db/*.sqlite3
+/db/*.sqlite3-*
+
+# Logs, temp files, uploads
+/log/*
+!/log/.keep
+/tmp/*
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+
+# Dependencies and build output
+/node_modules
+/public/assets
+/vendor/bundle
+
+# Ruby, editors and OS noise
+/.bundle
+/.byebug_history
+/coverage/
+/.idea/
+.DS_Store

@@ -96,11 +96,19 @@ On a purchase:
       "currency": "USD",
       "price": 62.40,
       "time": "2026-10-25T19:41:00Z",
-      "properties": { "reward_applied": true, "reward_amount": 25 }
+      "properties": {
+        "restaurant_id": "r_456",
+        "subtotal": 62.40,
+        "tip": 12,
+        "reward_applied": true,
+        "reward_amount": 25
+      }
     }
   ]
 }
 ```
+
+`price` is the food and beverage subtotal, the amount the reward minimum applies to. `tip` is a separate property. `restaurant_id` is omitted when a payment has no restaurant, as with imported history.
 
 The reward's state isn't in this payload. The warehouse owns the reward fields, so the backend marks the reward redeemed in its own database and the next warehouse sync clears them. The purchase only records whether this meal used the reward, which lets Braze report redemptions without waiting for the sync. The purchase exit doesn't wait for that sync either.
 

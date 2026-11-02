@@ -1,0 +1,20 @@
+<% content_for(:title) { "Warehouse" } %>
+
+<h1>Warehouse</h1>
+<p>Rows the app has not yet sent to Snowflake (<code>RAILS_DEMO</code>). The schedule sends them every 10 minutes. Nothing is sent when all counts are zero.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Table</th>
+      <th>Waiting to export</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Transactions</td><td>Transactions waiting: <%= @pending[:transactions] %></td></tr>
+    <tr><td>App events</td><td><%= @pending[:app_events] %></td></tr>
+    <tr><td>Rewards (new or redeemed)</td><td><%= @pending[:rewards] %></td></tr>
+  </tbody>
+</table>
+
+<%= button_to "Run export now", warehouse_export_path, method: :post %>
