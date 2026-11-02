@@ -24,6 +24,16 @@ class ConsoleTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Record payment"
   end
 
+  test "the save, view and pay forms are plain posts with Turbo turned off" do
+    get user_path(@user)
+
+    forms = response.body.scan(/<form[^>]*>/)
+    assert_equal 3, forms.size, "expected the save, view and pay forms"
+    forms.each do |form|
+      assert_includes form, 'data-turbo="false"', "form without Turbo turned off: #{form}"
+    end
+  end
+
   test "saving a restaurant produces one delivery with the save payload" do
     post user_saved_restaurants_path(@user), params: { saved_restaurant: { restaurant_id: @lantern.id } }
     assert_redirected_to user_path(@user)

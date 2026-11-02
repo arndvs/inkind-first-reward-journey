@@ -16,7 +16,7 @@
 
 <section>
   <h2>Save a restaurant</h2>
-  <%= form_with url: user_saved_restaurants_path(@user), scope: :saved_restaurant do |f| %>
+  <%= form_with url: user_saved_restaurants_path(@user), scope: :saved_restaurant, data: { turbo: false } do |f| %>
     <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
     <%= f.submit "Save restaurant" %>
   <% end %>
@@ -24,7 +24,7 @@
 
 <section>
   <h2>View a restaurant</h2>
-  <%= form_with url: user_restaurant_views_path(@user), scope: :restaurant_view do |f| %>
+  <%= form_with url: user_restaurant_views_path(@user), scope: :restaurant_view, data: { turbo: false } do |f| %>
     <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
     <%= f.submit "Record view" %>
   <% end %>
@@ -41,7 +41,7 @@
       </ul>
     </article>
   <% end %>
-  <%= form_with url: user_payments_path(@user), scope: :payment do |f| %>
+  <%= form_with url: user_payments_path(@user), scope: :payment, data: { turbo: false } do |f| %>
     <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
     <label>Subtotal (food and beverage, in dollars)
       <%= f.text_field :subtotal, placeholder: "62.40", inputmode: "decimal" %>
