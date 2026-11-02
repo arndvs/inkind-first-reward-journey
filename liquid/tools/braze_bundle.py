@@ -68,12 +68,16 @@ def catalog_rows():
     return [(key, by_location[location]) for key, location in CATALOG_KEYS.items()]
 
 
+def rewrite_value(value):
+    return rewrite_assets(value) if isinstance(value, str) else value
+
+
 def build_catalog(out):
     with open(out / "restaurants_catalog.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, quoting=csv.QUOTE_ALL)
         writer.writerow(["id"] + CATALOG_FIELDS)
         for key, item in catalog_rows():
-            writer.writerow([key] + [item.get(field, "") for field in CATALOG_FIELDS])
+            writer.writerow([key] + [rewrite_value(item.get(field, "")) for field in CATALOG_FIELDS])
 
 
 SAMPLE_SQL = LIQUID_DIR.parent / "sql" / "00_sample_data.sql"
