@@ -1,4 +1,4 @@
-# Spectator to Diner: First-Credit Journey
+# Spectator to Diner: First-Reward Journey
 
 Implementation sketch · Aaron Davis · October 2026
 
