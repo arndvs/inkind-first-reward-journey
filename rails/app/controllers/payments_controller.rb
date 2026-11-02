@@ -26,6 +26,7 @@ class PaymentsController < ApplicationController
   # "62.40" => 6240. Returns nil for anything that isn't a non-negative amount.
   def dollars_to_cents(text)
     amount = BigDecimal(text.to_s)
+    return nil unless amount.finite?
     return nil if amount.negative?
 
     (amount * 100).round

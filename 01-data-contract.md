@@ -26,7 +26,7 @@ The journey needs browse intent, the referral reward, and purchase state on the 
 | Attribute | Braze type | Why |
 |---|---|---|
 | `first_reward_amount` | Number | Used in the entry filter and the abort check |
-| `first_reward_display` | String | Shows "12.50" as text. As a Number, Braze showed "12.5" in the trial |
+| `first_reward_display` | String | Shows "12.50" as text. Braze guessed Number from the values; it was set to String in the import mapping before importing, and the preview shows $12.50. |
 | `first_reward_min_spend` | Number | Used in the copy as a whole number |
 | `first_transaction_at` | Time | Used for the "never paid" filter |
 | `saved_restaurants` | Array | A list of restaurant IDs. CSV import can't set it |
