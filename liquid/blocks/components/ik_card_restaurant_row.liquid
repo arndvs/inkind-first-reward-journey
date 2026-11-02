@@ -2,12 +2,12 @@
   ik_card_restaurant_row: compact row with the photo on the left, for short lists.
   Inputs: card (name, cuisine, price, address, distance_mi, cashback_pct, location_id,
   thumb_url (a square photo) or image_url).
-  Outputs: none. Sets card_link and badge_bg along the way.
+  Outputs: none. Sets card_link. No nested Content Blocks: Braze renders one level only, so the link and chip are inline.
   Notes: about a third the height of ik_card_restaurant_compact. A square thumb_url fills a
   fixed square; with only image_url, the photo keeps its shape (many clients ignore
   object-fit, so a fixed height would stretch it). Without a photo, the text takes the full width.
 {%- endcomment -%}
-{{content_blocks.${ik_restaurant_link}}}
+{%- if card.location_id -%}{%- assign card_link = restaurant_base_url | append: card.location_id -%}{%- else -%}{%- assign card_link = explore_url -%}{%- endif -%}
 <table class="ik-row" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:{{ ik_color_white }};border:1px solid {{ ik_color_border }};border-radius:16px;overflow:hidden"><tbody><tr>
 {%- if card.thumb_url %}
 <td width="{{ ik_thumb }}" valign="top" style="width:{{ ik_thumb }}px"><a href="{{ card_link }}" target="_blank"><img src="{{ card.thumb_url }}" alt="{{ card.name | escape }}" width="{{ ik_thumb }}" height="{{ ik_thumb }}" style="display:block;width:{{ ik_thumb }}px;height:{{ ik_thumb }}px;border:0"></a></td>
@@ -21,6 +21,6 @@
   <p style="margin:{{ ik_space_xxs }}px 0 0;color:{{ ik_color_muted }};font-size:{{ ik_text_sm }}px">{{ card.address | escape }}{% if card.distance_mi %} · {{ card.distance_mi }} mi{% endif %}</p>
   {%- endif %}
   {%- if card.cashback_pct %}
-  <p style="margin:{{ ik_space_xs }}px 0 0">{% assign badge_bg = ik_color_dark %}{{content_blocks.${ik_badge_cashback}}}</p>
+  <p style="margin:{{ ik_space_xs }}px 0 0"><span style="display:inline-block;background-color:{{ ik_color_dark }};border-radius:8px;padding:{{ ik_space_xxs }}px {{ ik_space_xs }}px;color:{{ ik_color_light }};font-family:{{ ik_font }};font-size:{{ ik_text_xs }}px;font-weight:600"><span style="color:{{ ik_color_gold }}">&#9679;</span> {{ card.cashback_pct }}% back</span></p>
   {%- endif %}
 </td></tr></tbody></table>

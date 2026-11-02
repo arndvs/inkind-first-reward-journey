@@ -21,6 +21,7 @@ Success is a higher first-purchase rate within 14 days of entry than the 10% con
 
 - [ ] Test profile shows each event and attribute with the right type (User Search, event user log)
 - [ ] Liquid preview for seven test users: saved restaurant found in the Catalog (once from the entry event, once from saved_restaurants only), saved ID missing from the Catalog, nothing saved, nothing saved with the recommendations endpoint down, reward already used (no reward fields), reward missing its minimum (last two abort). Automated in [`liquid/tests`](./liquid/tests); still previewed in Braze before launch
+- [ ] The nearby call (`ik_get_nearby` and `03-message.liquid`) has no `:retry`. With it, Braze aborts the message after repeated failures instead of falling back to the Explore button, so retry only a call the message can't do without (automated in `liquid/tests`)
 - [ ] Rendered push has no leading or trailing blank lines, shows "$25 toward a $50+ meal" (and "$12.50" for a non-whole amount) correctly, and stays under the push length limit with three long restaurant names (also automated)
 - [ ] Cloud Data Ingestion sync run shows the expected row count, and a test user's reward fields clear from the profile after the reward is marked redeemed in Snowflake
 - [ ] Links are tracked and deep-link into the app; email renders in Gmail, Outlook, and Apple Mail and includes the footer with an unsubscribe link
