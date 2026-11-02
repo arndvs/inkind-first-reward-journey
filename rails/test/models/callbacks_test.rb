@@ -14,6 +14,17 @@ class CallbacksTest < ActiveJob::TestCase
     assert_equal 1, AppEvent.where(event_name: "restaurant_saved").count
   end
 
+  test "a save and its restaurant_saved event are written together or not at all" do
+    AppEvent.stub(:create!, ->(*) { raise "event write failed" }) do
+      assert_no_enqueued_jobs do
+        assert_raises(RuntimeError) { SavedRestaurant.create!(user: @user, restaurant: @lantern) }
+      end
+    end
+
+    assert_equal 0, SavedRestaurant.count
+    assert_equal 0, AppEvent.count
+  end
+
   test "a restaurant_viewed event enqueues a track job" do
     assert_enqueued_jobs 1, only: Braze::TrackJob do
       AppEvent.create!(user: @user, event_name: "restaurant_viewed", restaurant: @lantern, occurred_at: Time.current)

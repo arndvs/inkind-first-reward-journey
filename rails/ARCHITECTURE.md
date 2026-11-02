@@ -104,7 +104,9 @@ snowflake:
   private_key_path: /home/you/.snowflake/rsa_key.p8   # never inside the repo
   private_key_passphrase: ""                           # if the key is encrypted
 braze:
-  mode: record          # the only supported value
+  mode: record          # "record" (default) or "http" (unverified, see section 6.4)
+  endpoint: https://rest.braze.example   # http mode only: your workspace's REST endpoint
+  api_key: change-me                     # http mode only; never commit the real value
 mission_control:
   http_basic_auth_user: admin
   http_basic_auth_password: change-me
@@ -219,31 +221,34 @@ Braze::Client.new(mode: Rails.application.credentials.dig(:braze, :mode) || "rec
 ```ruby
 class Braze::TrackJob < ApplicationJob
   queue_as :braze
-  retry_on Braze::RetryableError, wait: :polynomially_longer, attempts: 5
+
+  retry_on Braze::RetryableError, wait: :polynomially_longer, attempts: 5 do |job, error|
+    job.mark_failed!(error, "retries exhausted: #{error.message}")
+  end
   discard_on Braze::PermanentError, Braze::InvalidPayload   # marks the delivery failed first
 
   def perform(kind, record_gid)
-    record   = GlobalID::Locator.locate(record_gid)
-    delivery = BrazeDelivery.create_or_find_by!(idempotency_key: "#{kind}:#{record.to_param}") do |d|
-      d.user = record.user
-      d.endpoint = "/users/track"
-      d.payload = Braze::Payloads.public_send(kind, record)
-    end
+    record = GlobalID::Locator.locate(record_gid)
+    delivery = find_or_create_delivery(kind, record)
     return if delivery.recorded?
+
     delivery.increment!(:attempts)
-    response = Braze::Client.new.track(delivery.payload)
-    delivery.update!(status: "recorded", recorded_at: Time.current, last_error: nil)
+    result = Braze::Client.new.track(delivery.payload)
+    delivery.update!(status: "recorded", recorded_at: Time.current, last_error: result["errors"]&.to_json)
   end
 end
 ```
 
+- The delivery is found with `find_by` and created only when missing. Creation is a plain insert, not `create_or_find_by!`: the uniqueness validation fails on a repeat run before the fallback can find the row. If a concurrent run inserts first, the unique index raises `ActiveRecord::RecordNotUnique`, and the job reads the existing row with `find_by!`
 - The payload is built **once**, when the delivery row is created. Retries resend the stored payload; they never rebuild it from changed data
 - Idempotency keys: `restaurant_saved:<saved_restaurant.id>`, `restaurant_viewed:<app_event.id>`, `purchase:<transaction_key>`
 - Running the job twice for the same record leaves one delivery and makes one client call
+- Retry exhaustion: after 5 attempts the `retry_on` block marks the delivery `failed` and keeps the last error (`retries exhausted: …`), so the deliveries page shows it. A delivery still `pending` means the job is queued or was never run
+- Permanent errors and invalid payloads mark the delivery `failed` and are not retried
 
 ### 6.6 Callbacks and the payment service
 
-- `SavedRestaurant` `after_create_commit`: create an `AppEvent(event_name: "restaurant_saved")`, then enqueue `Braze::TrackJob("restaurant_saved", to_global_id.to_s)`
+- `SavedRestaurant` `after_create`: create the `AppEvent(event_name: "restaurant_saved")` inside the save's transaction, so a save never exists without its event. `after_create_commit` enqueues `Braze::TrackJob("restaurant_saved", to_global_id.to_s)`, so Braze hears only about committed saves
 - `AppEvent` for views: the controller creates it, and `after_create_commit` enqueues `restaurant_viewed` only for `event_name == "restaurant_viewed"`
 - `Payments::Record.call(user:, restaurant:, subtotal_cents:, tip_cents:, use_reward:)` wraps the transaction:
   - creates the `Txn` (the validations run)

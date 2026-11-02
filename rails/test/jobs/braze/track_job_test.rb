@@ -52,6 +52,39 @@ class TrackJobTest < ActiveJob::TestCase
     assert_includes delivery.last_error, "503"
   end
 
+  test "when retries run out the delivery is marked failed with the last error" do
+    client = FakeClient.new(error: Braze::RetryableError.new("Braze returned 503"))
+
+    Braze::Client.stub(:new, client) do
+      clear_enqueued_jobs # the save's own callback job would double every attempt
+      Braze::TrackJob.perform_later("restaurant_saved", @gid)
+      6.times { perform_enqueued_jobs(only: Braze::TrackJob) }
+    end
+
+    delivery = BrazeDelivery.sole
+    assert_equal "failed", delivery.status
+    assert_equal 5, delivery.attempts
+    assert_includes delivery.last_error, "retries exhausted"
+    assert_includes delivery.last_error, "503"
+  end
+
+  test "a lost insert race reuses the row the other run created without resending" do
+    client = FakeClient.new
+    Braze::TrackJob.perform_now("restaurant_saved", @gid)
+
+    # The first lookup misses, as if a concurrent run had not yet written its row.
+    # The insert then hits the unique index and the job reads the existing row.
+    lookups = 0
+    real_find_by = ->(*args, **kwargs) { BrazeDelivery.where(*args, **kwargs).take }
+    BrazeDelivery.stub(:find_by, ->(*args, **kwargs) { (lookups += 1) == 1 ? nil : real_find_by.(*args, **kwargs) }) do
+      Braze::Client.stub(:new, client) { Braze::TrackJob.perform_now("restaurant_saved", @gid) }
+    end
+
+    assert_equal 1, BrazeDelivery.count
+    assert_equal "recorded", BrazeDelivery.sole.status
+    assert_equal 0, client.payloads.size
+  end
+
   test "a permanent error marks the delivery failed and is not retried" do
     client = FakeClient.new(error: Braze::PermanentError.new("Braze returned 400"))
 

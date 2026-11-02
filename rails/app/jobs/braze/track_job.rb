@@ -5,17 +5,14 @@ module Braze
   class TrackJob < ApplicationJob
     queue_as :braze
 
-    retry_on Braze::RetryableError, wait: :polynomially_longer, attempts: 5
+    retry_on Braze::RetryableError, wait: :polynomially_longer, attempts: 5 do |job, error|
+      job.mark_failed!(error, "retries exhausted: #{error.message}")
+    end
     discard_on Braze::PermanentError, Braze::InvalidPayload
 
     def perform(kind, record_gid)
       record = GlobalID::Locator.locate(record_gid)
-      # find_or_create_by! looks first. create_or_find_by! would hit the uniqueness validation on a repeat run.
-      delivery = BrazeDelivery.find_or_create_by!(idempotency_key: idempotency_key(kind, record)) do |row|
-        row.user = record.user
-        row.endpoint = "/users/track"
-        row.payload = Braze::Payloads.public_send(kind, record)
-      end
+      delivery = find_or_create_delivery(kind, record)
       return if delivery.recorded?
 
       delivery.increment!(:attempts)
@@ -29,7 +26,36 @@ module Braze
       raise
     end
 
+    # Called by retry_on once the attempts run out. Keeps the delivery visible as failed.
+    def mark_failed!(_error, message)
+      kind, record_gid = arguments
+      record = GlobalID::Locator.locate(record_gid)
+      BrazeDelivery.find_by!(idempotency_key: idempotency_key(kind, record))
+                   .update!(status: "failed", last_error: message)
+    end
+
     private
+
+    # Looks first. If a concurrent run creates the row between the look-up and the insert, the unique
+    # index raises RecordNotUnique and we reuse the row the other run made.
+    def find_or_create_delivery(kind, record)
+      key = idempotency_key(kind, record)
+      BrazeDelivery.find_by(idempotency_key: key) || create_delivery(kind, record, key)
+    end
+
+    def create_delivery(kind, record, key)
+      delivery = BrazeDelivery.new(
+        idempotency_key: key,
+        user: record.user,
+        endpoint: "/users/track",
+        payload: Braze::Payloads.public_send(kind, record)
+      )
+      # The uniqueness check already ran in find_by. The unique index is the guard against a race.
+      delivery.save!(validate: false)
+      delivery
+    rescue ActiveRecord::RecordNotUnique
+      BrazeDelivery.find_by!(idempotency_key: key)
+    end
 
     def idempotency_key(kind, record)
       identifier = kind == "purchase" ? record.transaction_key : record.id
