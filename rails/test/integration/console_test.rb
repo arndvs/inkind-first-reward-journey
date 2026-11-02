@@ -82,6 +82,27 @@ class ConsoleTest < ActionDispatch::IntegrationTest
     assert_equal 0, BrazeDelivery.count
   end
 
+  test "a refused payment shows its message inside the Pay section, above the form" do
+    post user_payments_path(@user),
+         params: { payment: { restaurant_id: @lantern.id, subtotal: "38.00", tip: "0", use_reward: "1" } }
+
+    assert_response :unprocessable_content
+    pay_section = response.body[/<section>\s*<h2>Pay<\/h2>.*?<\/section>/m]
+    assert_not_nil pay_section, "the Pay section is missing"
+    assert_includes pay_section, "Subtotal must be at least $50.00 to use this reward"
+    assert_operator pay_section.index("Subtotal must be"), :<, pay_section.index("<form"),
+                    "the message should come before the form"
+  end
+
+  test "a bad amount is shown inside the Pay section too" do
+    post user_payments_path(@user),
+         params: { payment: { restaurant_id: @lantern.id, subtotal: "lots", tip: "0", use_reward: "0" } }
+
+    assert_response :unprocessable_content
+    pay_section = response.body[/<section>\s*<h2>Pay<\/h2>.*?<\/section>/m]
+    assert_includes pay_section, "Enter amounts like 62.40"
+  end
+
   test "an amount that is not a number is refused" do
     post user_payments_path(@user),
          params: { payment: { restaurant_id: @lantern.id, subtotal: "lots", tip: "0", use_reward: "0" } }

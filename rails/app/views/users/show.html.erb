@@ -5,16 +5,6 @@
 <h1><%= @user.external_id %></h1>
 <p><small><%= @user.email %></small></p>
 
-<% if @form_errors.present? %>
-  <article role="alert">
-    <ul>
-      <% @form_errors.each do |message| %>
-        <li><%= message %></li>
-      <% end %>
-    </ul>
-  </article>
-<% end %>
-
 <section>
   <h2>State</h2>
   <ul>
@@ -42,6 +32,15 @@
 
 <section>
   <h2>Pay</h2>
+  <% if @form_errors.present? %>
+    <article role="alert">
+      <ul>
+        <% @form_errors.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </article>
+  <% end %>
   <%= form_with url: user_payments_path(@user), scope: :payment do |f| %>
     <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
     <label>Subtotal (food and beverage, in dollars)
