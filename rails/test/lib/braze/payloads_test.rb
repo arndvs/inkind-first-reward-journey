@@ -14,8 +14,8 @@ class BrazePayloadsTest < ActiveSupport::TestCase
 
     purchase = JSON.parse(Braze::Payloads.purchase(txn).to_json)["purchases"].first
 
-    assert_kind_of Float, purchase["price"]
-    assert_equal 38.0, purchase["price"]
+    assert_kind_of Integer, purchase["price"]
+    assert_equal 38, purchase["price"]
     assert_not purchase["properties"].key?("restaurant_id")
     assert_not purchase["properties"].key?("reward_amount")
   end

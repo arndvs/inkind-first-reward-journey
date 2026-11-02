@@ -37,7 +37,7 @@ class BrazeContractTest < ActiveSupport::TestCase
 
     payload = Braze::Payloads.restaurant_saved(@saved)
 
-    assert_equal sample, JSON.parse(payload.to_json)
+    assert_equal JSON.generate(sample), JSON.generate(payload)
     assert_nothing_raised { Braze::Validator.check!(sample) }
   end
 
@@ -46,7 +46,7 @@ class BrazeContractTest < ActiveSupport::TestCase
 
     payload = Braze::Payloads.purchase(@txn)
 
-    assert_equal sample, JSON.parse(payload.to_json)
+    assert_equal JSON.generate(sample), JSON.generate(payload)
     assert_nothing_raised { Braze::Validator.check!(sample) }
   end
 end

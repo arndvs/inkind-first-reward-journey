@@ -44,10 +44,10 @@ module Braze
       user = txn.user
       properties = {}
       properties["restaurant_id"] = txn.restaurant.key if txn.restaurant
-      properties["subtotal"] = dollars(txn.subtotal_cents)
-      properties["tip"] = dollars(txn.tip_cents)
+      properties["subtotal"] = MoneyFormat.number(txn.subtotal_cents)
+      properties["tip"] = MoneyFormat.number(txn.tip_cents)
       properties["reward_applied"] = txn.reward_applied
-      properties["reward_amount"] = dollars(Reward.referral_welcome.find_by!(user: user).amount_cents) if txn.reward_applied
+      properties["reward_amount"] = MoneyFormat.number(Reward.referral_welcome.find_by!(user: user).amount_cents) if txn.reward_applied
 
       {
         "purchases" => [
@@ -55,17 +55,12 @@ module Braze
             "external_id" => user.external_id,
             "product_id" => PRODUCT_ID,
             "currency" => CURRENCY,
-            "price" => dollars(txn.subtotal_cents),
+            "price" => MoneyFormat.number(txn.subtotal_cents),
             "time" => iso8601(txn.created_at),
             "properties" => properties
           }
         ]
       }
-    end
-
-    # Braze expects numbers. BigDecimal would serialize as a JSON string.
-    def dollars(cents)
-      MoneyFormat.dollars(cents).to_f
     end
 
     def iso8601(time)

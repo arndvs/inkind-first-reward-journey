@@ -99,7 +99,7 @@ On a purchase:
       "properties": {
         "restaurant_id": "r_456",
         "subtotal": 62.40,
-        "tip": 12.00,
+        "tip": 12,
         "reward_applied": true,
         "reward_amount": 25
       }

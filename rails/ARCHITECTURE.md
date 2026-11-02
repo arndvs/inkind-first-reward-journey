@@ -55,7 +55,7 @@ rails/
   app/models/                user, reward, restaurant, saved_restaurant, txn, app_event, braze_delivery, cdi_watermark
   app/services/payments/record.rb
   app/lib/money_format.rb
-  app/lib/braze/{payloads,client,validator,errors}.rb
+  app/lib/braze/{payloads,client,validator,invalid_payload}.rb
   app/lib/snowflake/{client,jwt}.rb
   app/lib/warehouse/{export,cdi_preview,statements}.rb
   app/jobs/braze/track_job.rb
@@ -164,7 +164,7 @@ Restaurants: the SQL saves reference `r_201`, `r_214`, `r_233`, `r_208` and `r_2
 
 - `dollars(cents)` → `BigDecimal` with 2 places, for Braze `price` and the warehouse
 - `display(cents)` → `"25"` for whole dollars, `"12.50"` otherwise. It must match `first_reward_display` in `01` §4 and the Liquid fixtures
-- Braze payloads convert these values with `.to_f`. `BigDecimal` serializes to a JSON string by default, and Braze expects `price` as a number
+- Braze payloads use `MoneyFormat.number(cents)`: an Integer for whole dollars (`38`), a Float otherwise (`62.4`). `BigDecimal` would serialize as a JSON string, and Braze expects numbers
 
 ### 6.2 `Braze::Payloads`
 
@@ -393,7 +393,7 @@ All HTTP goes through WebMock. CI never needs Snowflake or Braze credentials.
 
 One commit per task, on `feature/rails-backend`. Each must leave `bin/rails test` green.
 
-**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–3 are done on `feature/rails-backend`: the app skeleton plus `PingJob` (verified finished in Mission Control), the models and validations, and the seeds. Next is task 4, which also takes `MoneyFormat` from task 3.
+**Status:** task 11 is done and merged to `main` (its own branch). Tasks 1–4 are done on `feature/rails-backend`: the app skeleton plus `PingJob` (verified finished in Mission Control), the models and validations, the seeds, and the Braze payloads, validator, `MoneyFormat` and contract test. Next is task 5, `Braze::Client`.
 
 | # | Task | Done when |
 |---|---|---|

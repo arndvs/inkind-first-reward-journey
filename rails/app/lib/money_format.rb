@@ -8,6 +8,12 @@ module MoneyFormat
     (BigDecimal(cents) / 100).round(2)
   end
 
+  # Whole dollars as an Integer (25), otherwise a Float (12.5, 62.4). Braze and the contract use these JSON numbers.
+  def number(cents)
+    whole, remainder = cents.divmod(100)
+    remainder.zero? ? whole : cents / 100.0
+  end
+
   # 2500 => "25", 1250 => "12.50"
   def display(cents)
     whole, remainder = cents.divmod(100)
