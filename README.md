@@ -18,6 +18,10 @@ I wasn't expecting a message that particular night. But a message or two in the 
 
    [![Watch the Liquid render in a Braze trial](sql/braze-video-thumbnail.png)](https://youtu.be/fSDLiHyoBgs)
 
+3. **A payment flowing from Rails to Snowflake** (4:30). A payment recorded once in the outbox, exported with a MERGE, and the reward going to null in the Cloud Data Ingestion preview. Record mode, nothing sent to Braze.
+
+   [![Watch a payment flow from Rails to Snowflake](sql/rails-video-thumbnail.png)](https://youtu.be/ZBk5Az8jVrs)
+
 ---
 
 ## What's built here
