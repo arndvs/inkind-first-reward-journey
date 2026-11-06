@@ -15,6 +15,7 @@ The journey needs browse intent, the referral reward, and purchase state on the 
 | `saved_restaurants` | Custom attribute (array of restaurant IDs) | Rails backend → `/users/track` | Message personalization |
 | `restaurants` | Catalog (`id`, `name`, `location_id`, `cuisine`, `price`, `rating`, `cashback_pct`, `image_url`, `thumb_url`, `description`) | Rails backend → Catalogs API | Restaurant names, links, and cards in the message |
 | `restaurant_saved` | Custom event (`restaurant_id`, `cuisine`) | App SDK or Rails backend → `/users/track` | Entry trigger; exits the browsing Canvas |
+| `restaurant_unsaved` | Custom event (`restaurant_id`) | Rails backend → `/users/track` | Removes the restaurant from `saved_restaurants`. Sent with the remaining list |
 | `restaurant_viewed` | Custom event (`restaurant_id`) | App SDK or Rails backend → `/users/track` | Intent signal |
 | `search_performed` | Custom event (`area`) | App SDK or Rails backend → `/users/track` | Intent signal. **Deferred:** no code produces it yet (see `docs/gaps.md`, G-06) |
 | Purchase | Purchase event | Rails backend → `/users/track` | Exit criteria, conversion |
@@ -96,6 +97,8 @@ When a user saves a restaurant:
   ]
 }
 ```
+
+When a user removes a saved restaurant, the backend sends the same shape as the save, with the event name `restaurant_unsaved` and the remaining `saved_restaurants`. The removed restaurant is absent from the list. This sample is prose, not a JSON block, so the contract test still counts two samples in this section.
 
 On a purchase:
 

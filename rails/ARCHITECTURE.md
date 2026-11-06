@@ -188,6 +188,7 @@ Braze::Payloads.purchase(txn)
 ```
 
 - `saved_restaurants` is the user's restaurant keys ordered by `saved_restaurants.created_at`
+- `restaurant_unsaved` has the same shape as `restaurant_saved`: the event name is `restaurant_unsaved` and the keys are the remaining ones, so the removed restaurant is absent
 - `reward_amount` is present only when `reward_applied` is true
 - `restaurant_id` is present only when the payment has a restaurant. Imported history has none
 - `price` equals `subtotal` (food and beverage, the amount the reward rule uses). The tip is a separate property
@@ -241,7 +242,7 @@ end
 
 - The delivery is found with `find_by` and created only when missing. Creation is a plain insert, not `create_or_find_by!`: the uniqueness validation fails on a repeat run before the fallback can find the row. If a concurrent run inserts first, the unique index raises `ActiveRecord::RecordNotUnique`, and the job reads the existing row with `find_by!`
 - The payload is built **once**, when the delivery row is created. Retries resend the stored payload; they never rebuild it from changed data
-- Idempotency keys: `restaurant_saved:<saved_restaurant.id>`, `restaurant_viewed:<app_event.id>`, `purchase:<transaction_key>`
+- Idempotency keys: `restaurant_saved:<saved_restaurant.id>`, `restaurant_viewed:<app_event.id>`, `restaurant_unsaved:<app_event.id>`, `purchase:<transaction_key>`
 - Running the job twice for the same record leaves one delivery and makes one client call
 - Retry exhaustion: after 5 attempts the `retry_on` block marks the delivery `failed` and keeps the last error (`retries exhausted: …`), so the deliveries page shows it. A delivery still `pending` means the job is queued or was never run
 - Permanent errors and invalid payloads mark the delivery `failed` and are not retried
@@ -249,7 +250,9 @@ end
 ### 6.6 Callbacks and the payment service
 
 - `SavedRestaurant` `after_create`: create the `AppEvent(event_name: "restaurant_saved")` inside the save's transaction, so a save never exists without its event. `after_create_commit` enqueues `Braze::TrackJob("restaurant_saved", to_global_id.to_s)`, so Braze hears only about committed saves
-- `AppEvent` for views: the controller creates it, and `after_create_commit` enqueues `restaurant_viewed` only for `event_name == "restaurant_viewed"`
+- `SavedRestaurant` `after_destroy`: a removal writes `AppEvent(event_name: "restaurant_unsaved")` inside the destroy's transaction, so a removal is never lost and is never sent without its event. It is skipped when the removal comes from a parent's `dependent: :destroy` (`destroyed_by_association`), so deleting a user or restaurant sends nothing
+- `AppEvent` for views and removals: `after_create_commit` enqueues a track job only for `TRACKED_EVENTS` (`restaurant_viewed`, `restaurant_unsaved`). Other events enqueue nothing
+- `Braze::TrackJob#locate`: a job whose record was removed before it ran returns without sending or raising. The removal's own event carries the current list, so nothing is lost
 - `Payments::Record.call(user:, restaurant:, subtotal_cents:, tip_cents:, use_reward:)` wraps the transaction:
   - creates the `Txn` (the validations run)
   - sets `reward.redeemed_at` when the reward applies
@@ -328,8 +331,9 @@ Pico CSS from the CDN. Routes:
 | Route | Shows or does |
 |---|---|
 | `GET /` | Users table: external ID, reward (amount, unused or used), saved count, paid yes/no, deliveries count |
-| `GET /users/:id` | The user's state; forms for Save restaurant (select), View restaurant (select), Pay (restaurant, subtotal, tip, "use reward"); outbox entries as pretty JSON, newest first; validation errors on `:base` at the top |
+| `GET /users/:id` | The user's state; a Remove button per saved restaurant; forms for Save restaurant (select), View restaurant (select), Pay (restaurant, subtotal, tip, "use reward"); outbox entries as pretty JSON, newest first; validation errors on `:base` at the top |
 | `POST /users/:user_id/saved_restaurants` | Create the save |
+| `DELETE /users/:user_id/saved_restaurants/:id` | Remove the save and write the `restaurant_unsaved` event. Each saved restaurant on the user page has a Remove button, a plain form with Turbo off |
 | `POST /users/:user_id/restaurant_views` | Create the `restaurant_viewed` event |
 | `POST /users/:user_id/payments` | `Payments::Record` |
 | `GET /deliveries` | All deliveries: key, status, attempts, user, created and recorded times. Click for the JSON |
@@ -435,5 +439,5 @@ One commit per task, on `feature/rails-backend`. Each must leave `bin/rails test
 - Files are committed with LF line endings
 - Commit messages describe the code change only, in plain imperative English, with no trailers
 - Don't change `sql/00`–`03` or their expected results. The Rails demo works only in `RAILS_DEMO`
-- Don't change any Liquid block's output. The Liquid tests and the parity test must stay green
+- Don't change any Liquid block's output without a test that names the change. The Liquid tests and the parity test must stay green. The one intended change is the removed Canvas context: a context restaurant the profile no longer lists is not featured (`docs/decisions.md`, D-25)
 - If a Snowflake or Braze detail in this document disagrees with the vendor's current documentation, follow the documentation and note the change in the commit message
