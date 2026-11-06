@@ -137,7 +137,7 @@ All times are stored in UTC. Money is integer cents; it's converted to `NUMBER(1
   - the user has an unredeemed `referral_welcome` reward
   - the reward has a `min_spend_cents` (u_1008's missing minimum is a data problem, so refuse it)
   - `subtotal_cents >= min_spend_cents` (u_1004's $38 meal)
-  - Errors go on `:base` with readable messages (the course's pattern)
+  - Errors go on `:base` with readable messages (the standard Rails form-error pattern)
 - `Txn` with `on: :app_payment`: the restaurant is required. `Payments::Record` (B6) saves with that context. Imported history (§5.1) saves without it
 - `SavedRestaurant`: uniqueness of the pair
 
