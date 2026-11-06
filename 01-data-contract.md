@@ -16,7 +16,7 @@ The journey needs browse intent, the referral reward, and purchase state on the 
 | `restaurants` | Catalog (`id`, `name`, `location_id`, `cuisine`, `price`, `rating`, `cashback_pct`, `image_url`, `thumb_url`, `description`) | Rails backend → Catalogs API | Restaurant names, links, and cards in the message |
 | `restaurant_saved` | Custom event (`restaurant_id`, `cuisine`) | App SDK or Rails backend → `/users/track` | Entry trigger; exits the browsing Canvas |
 | `restaurant_viewed` | Custom event (`restaurant_id`) | App SDK or Rails backend → `/users/track` | Intent signal |
-| `search_performed` | Custom event (`area`) | App SDK or Rails backend → `/users/track` | Intent signal |
+| `search_performed` | Custom event (`area`) | App SDK or Rails backend → `/users/track` | Intent signal. **Deferred:** no code produces it yet (see `docs/gaps.md`, G-06) |
 | Purchase | Purchase event | Rails backend → `/users/track` | Exit criteria, conversion |
 | Push / email subscription state | Standard | SDK, preferences | Channel routing |
 | Total sessions, First Used App | Collected by the Braze SDK | SDK | Entry filters for the browsing Canvas (02, section 4) |
@@ -167,6 +167,6 @@ In production, `UPDATED_AT` should come from when the row was loaded or changed,
 |---|---|
 | One owner per field: either the warehouse or the backend writes it, never both | Two writers race, and the profile ends up with whichever arrived last |
 | Send attributes only when they change (`UPDATED_AT` for the warehouse, change detection for the backend) | Avoids wasted data points and keeps the profile accurate |
-| Batch `/users/track` up to Braze's per-request object limit (75) | Throughput without hitting rate limits |
+| Limit each `/users/track` request to Braze's 75-object limit. The validator enforces it (`rails/app/lib/braze/validator.rb`). Batching is not built: each delivery is one request | Keeps requests within Braze's limit; batching is a planned change (`docs/gaps.md`, G-07) |
 | Backend records each event ID it has sent | Braze doesn't dedupe custom events or purchases, so a retried job would double-count a save or a purchase unless the backend prevents it |
 | Reconcile nightly against the warehouse | Catches users whose events silently failed to sync |
