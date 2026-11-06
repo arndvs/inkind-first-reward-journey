@@ -9,7 +9,7 @@ module Braze
 
     def restaurant_saved(saved_restaurant)
       user = saved_restaurant.user
-      keys = user.saved_restaurants.includes(:restaurant).order(:created_at, :id).map { |saved| saved.restaurant.key }
+      keys = saved_restaurant_keys(user)
 
       {
         "attributes" => [ { "external_id" => user.external_id, "saved_restaurants" => keys } ],
@@ -22,6 +22,23 @@ module Braze
               "restaurant_id" => saved_restaurant.restaurant.key,
               "cuisine" => saved_restaurant.restaurant.cuisine
             }
+          }
+        ]
+      }
+    end
+
+    def restaurant_unsaved(app_event)
+      user = app_event.user
+      keys = saved_restaurant_keys(user)
+
+      {
+        "attributes" => [ { "external_id" => user.external_id, "saved_restaurants" => keys } ],
+        "events" => [
+          {
+            "external_id" => user.external_id,
+            "name" => "restaurant_unsaved",
+            "time" => iso8601(app_event.occurred_at),
+            "properties" => { "restaurant_id" => app_event.restaurant.key }
           }
         ]
       }
@@ -61,6 +78,11 @@ module Braze
           }
         ]
       }
+    end
+
+    # The user's restaurant keys in save order. A removed restaurant is absent, so an unsave sends the remaining list.
+    def saved_restaurant_keys(user)
+      user.saved_restaurants.includes(:restaurant).order(:created_at, :id).map { |saved| saved.restaurant.key }
     end
 
     def iso8601(time)
