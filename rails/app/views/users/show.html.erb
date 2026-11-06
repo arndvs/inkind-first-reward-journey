@@ -15,6 +15,17 @@
 </section>
 
 <section>
+  <h2>Saved restaurants</h2>
+  <% if @saved.empty? %>
+    <p>None yet.</p>
+  <% end %>
+  <% @saved.each do |saved| %>
+    <%= button_to "Remove #{saved.restaurant.name}", user_saved_restaurant_path(@user, saved),
+                  method: :delete, form: { data: { turbo: false } } %>
+  <% end %>
+</section>
+
+<section>
   <h2>Save a restaurant</h2>
   <%= form_with url: user_saved_restaurants_path(@user), scope: :saved_restaurant, data: { turbo: false } do |f| %>
     <%= f.select :restaurant_id, restaurant_choices(@restaurants), prompt: "Choose a restaurant" %>
