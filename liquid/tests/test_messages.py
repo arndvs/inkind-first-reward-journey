@@ -32,6 +32,13 @@ def test_saved_restaurant_is_featured_and_linked(case):
     assert push(case) == "Your $25 toward a $50+ meal is waiting at Lantern Row. Dinner tonight?"
 
 
+def test_restaurant_removed_after_its_save_is_not_featured():
+    out = email("context-removed")
+    assert "See Lantern Row" in out
+    assert restaurant_links(out) == ["demo-101"]
+    assert push("context-removed") == "Your $25 toward a $50+ meal is waiting at Lantern Row. Dinner tonight?"
+
+
 def test_nearby_list_in_order_with_escaped_names():
     out = email("nearby-picks")
     assert restaurant_links(out) == ["demo-201", "demo-202", "demo-203"]
