@@ -26,6 +26,18 @@ class TrackJobTest < ActiveJob::TestCase
     @gid = @saved.to_global_id.to_s
   end
 
+  test "a job whose record was removed before it ran sends nothing and does not raise" do
+    @saved.destroy!
+    client = FakeClient.new
+
+    Braze::Client.stub(:new, client) do
+      assert_nothing_raised { Braze::TrackJob.perform_now("restaurant_saved", @gid) }
+    end
+
+    assert_empty client.payloads
+    assert_equal 0, BrazeDelivery.count
+  end
+
   test "running the job twice leaves one delivery and makes one client call" do
     client = FakeClient.new
 
