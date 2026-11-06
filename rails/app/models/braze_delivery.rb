@@ -19,7 +19,7 @@ class BrazeDelivery < ApplicationRecord
     record = case kind
     when "purchase" then Txn.find_by!(transaction_key: identifier)
     when "restaurant_saved" then SavedRestaurant.find(identifier)
-    when "restaurant_viewed" then AppEvent.find(identifier)
+    when "restaurant_viewed", "restaurant_unsaved" then AppEvent.find(identifier)
     else raise ArgumentError, "unknown delivery kind: #{kind.inspect}"
     end
     [ kind, record.to_global_id.to_s ]
