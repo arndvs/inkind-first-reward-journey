@@ -28,6 +28,7 @@ I wasn't expecting a message that particular night. But a message or two in the 
 
 | File | What it contains |
 |---|---|
+| [`ARCHITECTURE.md`](./ARCHITECTURE.md) | How the pieces fit together, in five diagrams: the whole system, a payment end to end, how the message decides what to say, why `UPDATED_AT` is the load time, and which checks run where |
 | [`01-data-contract.md`](./01-data-contract.md) | The profile fields, two sync paths (real-time `/users/track` for events, Snowflake Cloud Data Ingestion for computed attributes), sample payloads, the sync view, sync rules |
 | [`02-journey.md`](./02-journey.md) | Audience rules, audience SQL, the Canvas flow, and a second Canvas for new users who browse without saving |
 | [`03-message.liquid`](./03-message.liquid) | The template: saved-restaurant personalization from a Catalog, a Connected Content call for nearby picks with its own fallback, and an abort when there's no unused reward |
