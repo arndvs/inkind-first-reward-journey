@@ -65,6 +65,8 @@ CASES = {
     # the seven Liquid previews in 04
     "saved-restaurant":   case({"restaurant_id": "r_101"}, **REWARD),
     "saved-array-only":   case(saved_restaurants=["r_101"], **REWARD),
+    # the save that started the Canvas was removed; the profile now lists only r_101
+    "context-removed":    case({"restaurant_id": "r_205"}, saved_restaurants=["r_101"], **REWARD),
     "id-not-in-catalog":  case({"restaurant_id": "r_99999"}, **REWARD),
     "nearby-picks":       case(**REWARD),
     "generic":            case(recommendations=RECS_DOWN, **REWARD),

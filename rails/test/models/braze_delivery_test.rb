@@ -11,6 +11,16 @@ class BrazeDeliveryTest < ActiveSupport::TestCase
     assert_equal [ "restaurant_saved", saved.to_global_id.to_s ], delivery.job_arguments
   end
 
+  test "job_arguments rebuilds a restaurant_unsaved delivery from its event" do
+    user = create_user("u_1001")
+    restaurant = create_restaurant("r_101")
+    event = AppEvent.create!(user: user, event_name: "restaurant_unsaved", restaurant: restaurant, occurred_at: Time.current)
+    delivery = BrazeDelivery.create!(idempotency_key: "restaurant_unsaved:#{event.id}", user: user,
+                                     endpoint: "/users/track", payload: {})
+
+    assert_equal [ "restaurant_unsaved", event.to_global_id.to_s ], delivery.job_arguments
+  end
+
   test "job_arguments finds a purchase by its transaction key" do
     user = create_user("u_1001")
     restaurant = create_restaurant("r_101")

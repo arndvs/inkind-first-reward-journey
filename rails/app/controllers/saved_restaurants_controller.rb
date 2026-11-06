@@ -1,4 +1,11 @@
 class SavedRestaurantsController < ApplicationController
+  def destroy
+    user = User.find(params[:user_id])
+    saved = user.saved_restaurants.includes(:restaurant).find(params[:id])
+    saved.destroy!
+    redirect_to user_path(user), notice: "Removed #{saved.restaurant.name}."
+  end
+
   def create
     user = User.find(params[:user_id])
     restaurant = Restaurant.find_by(id: params.expect(saved_restaurant: [ :restaurant_id ])[:restaurant_id])

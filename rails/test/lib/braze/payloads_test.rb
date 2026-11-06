@@ -68,4 +68,19 @@ class BrazePayloadsTest < ActiveSupport::TestCase
 
     assert_equal 25, properties["reward_amount"]
   end
+
+  test "restaurant_unsaved carries the remaining keys and the removed restaurant" do
+    other = Restaurant.create!(key: "r_214", name: "Ember & Oak", location_id: "demo-202", cuisine: "Steakhouse")
+    SavedRestaurant.create!(user: @user, restaurant: other)
+    saved = SavedRestaurant.create!(user: @user, restaurant: @lantern)
+    saved.destroy!
+    event = AppEvent.find_by!(event_name: "restaurant_unsaved")
+
+    payload = Braze::Payloads.restaurant_unsaved(event)
+
+    assert_equal %w[ r_214 ], payload["attributes"].first["saved_restaurants"]
+    assert_equal "restaurant_unsaved", payload["events"].first["name"]
+    assert_equal "r_101", payload["events"].first["properties"]["restaurant_id"]
+    assert_nothing_raised { Braze::Validator.check!(payload) }
+  end
 end

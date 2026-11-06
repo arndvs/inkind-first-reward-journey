@@ -34,6 +34,39 @@ class ConsoleTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "removing a saved restaurant sends one unsave delivery with the remaining list" do
+    saved = SavedRestaurant.create!(user: @user, restaurant: @lantern)
+    SavedRestaurant.create!(user: @user, restaurant: create_restaurant("r_202"))
+
+    delete user_saved_restaurant_path(@user, saved)
+    assert_redirected_to user_path(@user)
+    perform_enqueued_jobs
+
+    assert_nil SavedRestaurant.find_by(id: saved.id)
+    delivery = BrazeDelivery.where("idempotency_key LIKE ?", "restaurant_unsaved:%").sole
+    assert_equal [ "r_202" ], delivery.payload["attributes"].first["saved_restaurants"]
+    assert_equal "restaurant_unsaved", delivery.payload["events"].first["name"]
+    assert_equal "r_101", delivery.payload["events"].first["properties"]["restaurant_id"]
+  end
+
+  test "removing a restaurant the user never saved is not found and sends nothing" do
+    delete user_saved_restaurant_path(@user, 999_999)
+
+    assert_response :not_found
+    assert_equal 0, BrazeDelivery.count
+  end
+
+  test "each saved restaurant on the user page has a remove form that sends a delete with Turbo off" do
+    saved = SavedRestaurant.create!(user: @user, restaurant: @lantern)
+
+    get user_path(@user)
+
+    form = response.body.scan(/<form[^>]*>/).find { |tag| tag.include?(user_saved_restaurant_path(@user, saved)) }
+    assert form, "no remove form for the saved restaurant"
+    assert_includes form, 'data-turbo="false"'
+    assert_match(/name="_method" value="delete"/, response.body)
+  end
+
   test "saving a restaurant produces one delivery with the save payload" do
     post user_saved_restaurants_path(@user), params: { saved_restaurant: { restaurant_id: @lantern.id } }
     assert_redirected_to user_path(@user)

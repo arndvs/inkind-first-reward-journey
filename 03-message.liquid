@@ -33,7 +33,13 @@
 {%- assign reward_display = custom_attribute.${first_reward_display} | default: reward -%}
 {%- assign min_spend = custom_attribute.${first_reward_min_spend} -%}
 {%- assign first_saved = custom_attribute.${saved_restaurants} | first -%}
-{%- assign saved_id = context.${restaurant_id} | default: first_saved -%}
+{%- assign context_saved = context.${restaurant_id} -%}
+{%- assign profile_list = custom_attribute.${saved_restaurants} -%}
+{%- assign saved_id = first_saved -%}
+{%- if context_saved -%}
+  {%- unless profile_list -%}{%- assign saved_id = context_saved -%}{%- endunless -%}
+  {%- if profile_list contains context_saved -%}{%- assign saved_id = context_saved -%}{%- endif -%}
+{%- endif -%}
 
 {%- unless reward -%}
   {%- abort_message("no unused reward") -%}

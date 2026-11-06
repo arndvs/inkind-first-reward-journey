@@ -11,7 +11,8 @@ module Braze
     discard_on Braze::PermanentError, Braze::InvalidPayload
 
     def perform(kind, record_gid)
-      record = GlobalID::Locator.locate(record_gid)
+      record = locate(record_gid)
+      return if record.nil? # removed before its job ran; see #locate
       delivery = find_or_create_delivery(kind, record)
       return if delivery.recorded?
 
@@ -24,6 +25,14 @@ module Braze
     rescue Braze::PermanentError, Braze::InvalidPayload => error
       delivery&.update!(status: "failed", last_error: error.message)
       raise
+    end
+
+    # A record removed after it was queued can no longer be located. Its removal writes its own event, which
+    # carries the current list, so nothing is left to send for the removed record.
+    def locate(record_gid)
+      GlobalID::Locator.locate(record_gid)
+    rescue ActiveRecord::RecordNotFound
+      nil
     end
 
     # Called by retry_on once the attempts run out. Keeps the delivery visible as failed.

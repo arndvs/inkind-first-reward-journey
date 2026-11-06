@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   # Local QA console. See rails/ARCHITECTURE.md section 7.
   root "users#index"
   resources :users, only: %i[ index show ] do
-    resources :saved_restaurants, only: :create
+    resources :saved_restaurants, only: %i[ create destroy ]
     resources :restaurant_views, only: :create
     resources :payments, only: :create
   end

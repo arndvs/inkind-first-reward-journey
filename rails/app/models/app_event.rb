@@ -5,8 +5,11 @@ class AppEvent < ApplicationRecord
   validates :event_name, presence: true
   validates :occurred_at, presence: true
 
+  # Events Braze hears about. Each one is sent as its own /users/track body.
+  TRACKED_EVENTS = %w[ restaurant_viewed restaurant_unsaved ].freeze
+
   before_validation :assign_event_key, on: :create
-  after_create_commit :track_view, if: -> { event_name == "restaurant_viewed" }
+  after_create_commit :track, if: -> { TRACKED_EVENTS.include?(event_name) }
 
   # The same inputs always give the same key. Snowflake MERGEs on it (rails/ARCHITECTURE.md section 6.8).
   def self.event_key_for(event_name:, user_external_id:, restaurant_key:, occurred_at:)
@@ -26,7 +29,7 @@ class AppEvent < ApplicationRecord
     )
   end
 
-  def track_view
-    Braze::TrackJob.perform_later("restaurant_viewed", to_global_id.to_s)
+  def track
+    Braze::TrackJob.perform_later(event_name, to_global_id.to_s)
   end
 end

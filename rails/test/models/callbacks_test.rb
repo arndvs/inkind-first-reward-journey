@@ -43,4 +43,39 @@ class CallbacksTest < ActiveJob::TestCase
                   subtotal_cents: 3800, tip_cents: 0, reward_applied: false)
     end
   end
+
+  test "removing a saved restaurant writes one restaurant_unsaved event and one track job" do
+    saved = SavedRestaurant.create!(user: @user, restaurant: @lantern)
+
+    assert_enqueued_jobs 1, only: Braze::TrackJob do
+      saved.destroy!
+    end
+
+    assert_nil SavedRestaurant.find_by(id: saved.id)
+    event = AppEvent.find_by!(event_name: "restaurant_unsaved")
+    assert_equal @user, event.user
+    assert_equal @lantern, event.restaurant
+  end
+
+  test "a removal and its restaurant_unsaved event are written together or not at all" do
+    saved = SavedRestaurant.create!(user: @user, restaurant: @lantern)
+
+    AppEvent.stub(:create!, ->(*) { raise "event write failed" }) do
+      assert_no_enqueued_jobs do
+        assert_raises(RuntimeError) { saved.destroy! }
+      end
+    end
+
+    assert SavedRestaurant.exists?(saved.id)
+  end
+
+  test "deleting a user does not write restaurant_unsaved events or track jobs" do
+    SavedRestaurant.create!(user: @user, restaurant: @lantern)
+
+    assert_no_enqueued_jobs only: Braze::TrackJob do
+      @user.destroy!
+    end
+
+    assert_equal 0, AppEvent.where(event_name: "restaurant_unsaved").count
+  end
 end

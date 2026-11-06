@@ -39,6 +39,8 @@ I wasn't expecting a message that particular night. But a message or two in the 
 
 With only a few minutes, start with the "Who can receive it" checks in [`04-qa-and-measurement.md`](./04-qa-and-measurement.md). They decide who can get a message before anything sends.
 
+For how the journey is designed, the current spec, the decisions still open, and the gap register, see [`docs/`](./docs/README.md).
+
 ---
 
 ## Conventions
