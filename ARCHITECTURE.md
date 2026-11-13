@@ -157,8 +157,8 @@ The same thing happens with a record that's only an hour late, if a sync runs in
 
 ```mermaid
 flowchart LR
-    PR(["Pull request"]) --> L["Liquid tests<br/>pytest: 180 tests<br/>blocks, messages, parity,<br/>nesting, golden cards"]
-    PR --> R["Rails tests<br/>137 tests<br/>+ Brakeman + RuboCop"]
+    PR(["Pull request"]) --> L["Liquid tests<br/>pytest: 184 tests<br/>blocks, messages, parity,<br/>nesting, golden cards"]
+    PR --> R["Rails tests<br/>146 tests<br/>+ Brakeman + RuboCop"]
     L --> MERGE{"All green?"}
     R --> MERGE
     MERGE -- "yes" --> MAIN(["Merge"])
