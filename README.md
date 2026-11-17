@@ -29,15 +29,15 @@ How I'd build one Braze journey end to end: get browse intent and the referral r
 
 1. **The SQL running in Snowflake** (4:42). Synthetic users, the view Braze would read, 11/11 checks passing.
 
-   [![Watch the SQL run in Snowflake (4:42)](sql/video-thumbnail.png)](https://youtu.be/OnmBVC8vrwE)
+   [![Watch the SQL run in Snowflake (4:42)](sql/video-thumbnail.jpg)](https://youtu.be/OnmBVC8vrwE)
 
 2. **The Liquid rendering in a Braze trial** (4:23). The full email, $12.50 kept, three aborts, and the saved-restaurant card. Preview only, nothing sent.
 
-   [![Watch the Liquid render in a Braze trial](sql/braze-video-thumbnail.png)](https://youtu.be/fSDLiHyoBgs)
+   [![Watch the Liquid render in a Braze trial](sql/braze-video-thumbnail.jpg)](https://youtu.be/fSDLiHyoBgs)
 
 3. **A payment flowing from Rails to Snowflake** (4:30). A payment recorded once in the outbox, exported with a MERGE, and the reward going to null in the Cloud Data Ingestion preview. Record mode, nothing sent to Braze.
 
-   [![Watch a payment flow from Rails to Snowflake](sql/rails-video-thumbnail.png)](https://youtu.be/ZBk5Az8jVrs)
+   [![Watch a payment flow from Rails to Snowflake](sql/rails-video-thumbnail.jpg)](https://youtu.be/ZBk5Az8jVrs)
 
 ## What the Braze trial taught me
 
