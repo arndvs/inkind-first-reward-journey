@@ -8,6 +8,10 @@ How I'd build one Braze journey end to end: get browse intent and the referral r
 
 **Why this one:** I signed up for inKind through a referral, with $25 toward my first $50+ meal, and saved a restaurant or two. Two weeks later my wife and I spent a Saturday night on Google Maps deciding where to order, and inKind never came to mind. The two emails I'd received were general brand messages; neither mentioned my $25 or the places I'd saved, though everything that message needed was already in my account.
 
+![Saved-restaurant email: $25 toward a first $50+ meal, with a Lantern Row card and a See Lantern Row button](liquid/previews/screenshots/email-saved-restaurant.png)
+
+*The saved-restaurant email, rendered from the Liquid template with sample data. Nothing is sent. The legal lines in the footer are placeholders.*
+
 ---
 
 ## What it does
