@@ -15,7 +15,7 @@ In a Snowflake worksheet (a free trial works), run the files in order:
 
 Run in Snowflake on 2026-11-01: 11/11 PASS ([results](results/03_checks_2026-11-01.csv), [screenshot](results/03_checks_2026-11-01.png)).
 
-[![Watch the SQL run in Snowflake (4:42)](video-thumbnail.png)](https://youtu.be/OnmBVC8vrwE)
+[![Watch the SQL run in Snowflake (4:42)](video-thumbnail.jpg)](https://youtu.be/OnmBVC8vrwE)
 
 To clean up: `DROP DATABASE INKIND_POC; DROP WAREHOUSE INKIND_POC_WH;`
 
